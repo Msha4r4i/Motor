@@ -18,6 +18,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.HashMap;
 
+@org.springframework.web.bind.annotation.ControllerAdvice
 public class ControllerAdvice {
     // Our Exception
     @ExceptionHandler(value = ApiException.class)
