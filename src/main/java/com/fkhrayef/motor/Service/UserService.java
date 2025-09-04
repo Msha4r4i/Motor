@@ -24,9 +24,9 @@ public class UserService {
         User user = new User();
         // set DTO values
         user.setPhone(userDTO.getPhone());
-        user.setName(user.getName());
-        user.setEmail(user.getEmail());
-        user.setPassword(user.getPassword());
+        user.setName(userDTO.getName());
+        user.setEmail(userDTO.getEmail());
+        user.setPassword(userDTO.getPassword());
 
         // set default values
         user.setRole("USER");
@@ -43,9 +43,9 @@ public class UserService {
         }
 
         user.setPhone(userDTO.getPhone());
-        user.setName(user.getName());
-        user.setEmail(user.getEmail());
-        user.setPassword(user.getPassword());
+        user.setName(userDTO.getName());
+        user.setEmail(userDTO.getEmail());
+        user.setPassword(userDTO.getPassword());
 
         userRepository.save(user);
     }
