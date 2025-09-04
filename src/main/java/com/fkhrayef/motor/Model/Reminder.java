@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,29 +36,26 @@ public class Reminder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotNull(message = "user_id can't be null")
-    @Column(columnDefinition = "int not null")
-    private Integer user_id;
-    @NotNull(message = "car_id can't be null")
-    @Column(columnDefinition = "int not null")
-    private Integer car_id;
-    @NotEmpty(message = "type can't be null")
+    @NotEmpty(message = "Type can't be null")
     @Column(columnDefinition = "varchar(255) not null")
     private String type;
-    @NotNull(message = "due_date can't be null")
+
+    @NotNull(message = "Due date can't be null")
     @Column(columnDefinition = "date not null")
-    private LocalDateTime due_date;
-    @NotEmpty(message = "message can't be null")
+    private LocalDateTime dueDate;
+
+    @NotEmpty(message = "Message can't be null")
     @Column(columnDefinition = "varchar(255) not null")
     private String message;
-    @NotNull(message = "is_sent can't be null")
+
+    @NotNull(message = "isSent can't be null")
     @Column(columnDefinition = "boolean not null")
-    private Boolean is_sent;
-    @NotNull(message = "createdAt can't be null")
-    @Column(columnDefinition = "date not null")
+    private Boolean isSent;
+
+    @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt;
-    @NotNull(message = "updatedAt can't be null")
-    @Column(columnDefinition = "date not null")
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
 }

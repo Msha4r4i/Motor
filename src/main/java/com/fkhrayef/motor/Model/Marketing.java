@@ -3,10 +3,13 @@ package com.fkhrayef.motor.Model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,42 +36,35 @@ public class Marketing {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotNull(message = "title can't be null")
+    @NotNull(message = "Title can't be null")
     @Column(columnDefinition = "varchar(255) not null")
     private String title;
 
-    @NotEmpty(message = "offer_type can't be null")
+    @NotEmpty(message = "Offer type can't be null")
     @Column(columnDefinition = "varchar(255) not null")
-    private String offer_type;
+    private String offerType;
 
-
-    @NotEmpty(message = "description can't be null")
+    @NotEmpty(message = "Description can't be null")
     @Column(columnDefinition = "text not null")
     private String description;
 
+    @NotEmpty(message = "Poster url can't be null")
+    @Column(columnDefinition = "varchar(4069) not null")
+    @Size(max = 4069)
+    private String posterUrl;
 
-    @NotEmpty(message = "poster_url can't be null")
-    @Column(columnDefinition = "varchar(255) not null")
-    private String poster_url;
-
-
-    @NotNull(message = "start_date can't be null")
+    @NotNull(message = "Start date can't be null")
     @Column(columnDefinition = "date not null")
-    private LocalDateTime start_date;
+    private LocalDateTime startDate;
 
-
-    @NotNull(message = "end_date can't be null")
+    @NotNull(message = "End date can't be null")
     @Column(columnDefinition = "date not null")
-    private LocalDateTime end_date;
+    private LocalDateTime endDate;
 
-
-    @NotNull(message = "createdAt can't be null")
-    @Column(columnDefinition = "date not null")
+    @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt;
-
-
-    @NotNull(message = "updatedAt can't be null")
-    @Column(columnDefinition = "date not null")
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
 }

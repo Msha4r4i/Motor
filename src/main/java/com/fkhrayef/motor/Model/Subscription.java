@@ -3,10 +3,13 @@ package com.fkhrayef.motor.Model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,25 +33,24 @@ public class Subscription {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotNull(message = "user_id can't be null")
-    @Column(columnDefinition = "int not null")
-    private Integer user_id;
-    @NotEmpty(message = "plan can't be null")
+
+    @NotEmpty(message = "Plan can't be null")
     @Column(columnDefinition = "varchar(255) not null")
-    private String plan = "Free";
-    @NotNull(message = "start_date can't be null")
+    @Pattern(regexp = "^(Pro|Enterprise)$", message = "Plan must be Free, Pro or Enterprise")
+    private String plan;
+
+    @NotNull(message = "Start date can't be null")
     @Column(columnDefinition = "date not null")
-    private LocalDateTime start_date;
-    @NotNull(message = "end_date can't be null")
+    private LocalDateTime startDate;
+
+    @NotNull(message = "End date can't be null")
     @Column(columnDefinition = "date not null")
-    private LocalDateTime end_date;
-    @NotNull(message = "createdAt can't be null")
-    @Column(columnDefinition = "date not null")
+    private LocalDateTime endDate;
+
+    @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt;
-    @NotNull(message = "updatedAt can't be null")
-    @Column(columnDefinition = "date not null")
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-
 
 }
