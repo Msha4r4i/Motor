@@ -24,7 +24,7 @@ public class Invoice {
     private Integer id;
 
     @NotEmpty(message = "fileUrl must be not Empty")
-    @Column(columnDefinition = "not null")
+    @Column(columnDefinition = "varchar(4096) not null")
     private String fileUrl;
 
     @NotNull(message = "amount must not be null")
