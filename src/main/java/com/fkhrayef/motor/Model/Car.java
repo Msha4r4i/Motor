@@ -2,6 +2,7 @@ package com.fkhrayef.motor.Model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,10 +39,11 @@ public class Car {
     private Integer mileage;
 
     @NotEmpty(message = "VIN cannot be null")
-    @Column(columnDefinition = "VARCHAR(255) UNIQUE")
+    @Size(max = 17, message = "VIN must be 17 characters")
+    @Column(columnDefinition = "VARCHAR(17) UNIQUE")
     private String vin;
 
-    @Column(columnDefinition = "DATETIME NOT NULL")
+    @Column(columnDefinition = "DATE NOT NULL")
     private LocalDate purchaseDate;
 
     @Column(columnDefinition = "VARCHAR(4096)")
