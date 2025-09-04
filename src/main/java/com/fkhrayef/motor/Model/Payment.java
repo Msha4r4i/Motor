@@ -1,5 +1,6 @@
 package com.fkhrayef.motor.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,6 +40,10 @@ public class Payment {
     @Column(columnDefinition = "VARCHAR(500)")
     private String description;
 
+    // Relations
+    @ManyToOne
+    @JsonIgnore
+    private Subscription subscription;
 
     @CreationTimestamp
     @Column(updatable = false)

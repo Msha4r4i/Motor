@@ -3,7 +3,6 @@ package com.fkhrayef.motor.Model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,6 +14,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -45,33 +45,36 @@ public class User {
     @Column(columnDefinition = "VARCHAR(255) NOT NULL")
     private String password;
 
-    @NotEmpty(message = "License file url cannot be null")
+    @Column(columnDefinition = "VARCHAR(20) NOT NULL")
+    @Pattern(regexp = "^(ADMIN|USER)$", message = "Role must be either 'ADMIN' or 'USER'")
+    private String role;
+
+    // License Information (Optional)
     @Column(columnDefinition = "VARCHAR(255)")
     private String licenseFileUrl;
-
-    @NotNull(message = "License expiry date cannot be null")
     @Column(columnDefinition = "DATE")
     private LocalDate licenseExpiry;
 
-    @Column(columnDefinition = "VARCHAR(20) NOT NULL")
-    @Pattern(regexp = "^(ADMIN|USER)$")
-    private String role;
-
+    // Card Information (Optional but required for subscription)
     @Column(columnDefinition = "VARCHAR(100)")
     private String cardName;
-
     @Column(columnDefinition = "VARCHAR(32)")
     private String cardNumber;
-
     @Column(columnDefinition = "VARCHAR(8)")
     private String cardCvc;
-
     @Column(columnDefinition = "VARCHAR(4)")
     private String cardExpMonth;
-
     @Column(columnDefinition = "VARCHAR(6)")
     private String cardExpYear;
 
+    // Relations
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
+    private Set<Car> cars;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
+    private Set<Subscription> subscription;
+
+    // Timestamps
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

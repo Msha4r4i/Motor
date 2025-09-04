@@ -3,6 +3,7 @@ package com.fkhrayef.motor.Model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,7 +20,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Check(constraints = "end_date > start_date")
+@Check(constraints = "offer_type IN ('accessories','insurance','services')")
+@Check(constraints = "start_date <= end_date")
 public class Marketing {
 
     @Id
@@ -31,6 +33,7 @@ public class Marketing {
     private String title;
 
     @NotEmpty(message = "Offer type can't be null")
+    @Pattern(regexp = "^(accessories|insurance|services)$", message = "Offer type must be one of: accessories, insurance, services")
     @Column(columnDefinition = "varchar(255) not null")
     private String offerType;
 

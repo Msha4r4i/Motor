@@ -1,5 +1,6 @@
 package com.fkhrayef.motor.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -13,13 +14,14 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Check(constraints = "plan in ('PRO', 'ENTERPRISE')")
+@Check(constraints = "plan IN ('PRO', 'ENTERPRISE')")
 public class Subscription {
 
     @Id
@@ -38,6 +40,14 @@ public class Subscription {
     @NotNull(message = "End date can't be null")
     @Column(columnDefinition = "datetime not null")
     private LocalDateTime endDate;
+
+    // Relations
+    @ManyToOne
+    @JsonIgnore
+    private User user;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "subscription")
+    private Set<Payment> payments;
 
     @CreationTimestamp
     @Column(updatable = false)
