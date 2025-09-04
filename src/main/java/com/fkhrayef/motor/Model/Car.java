@@ -23,7 +23,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Check(constraints = "mileage > 0")
+@Check(constraints = "mileage >= 0")
 public class Car {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

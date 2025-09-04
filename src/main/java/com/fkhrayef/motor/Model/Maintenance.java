@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Check(constraints = "mileage > 0")
+@Check(constraints = "mileage >= 0")
 public class Maintenance {
 
     @Id
