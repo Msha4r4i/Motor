@@ -2,10 +2,6 @@ package com.fkhrayef.motor.Model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,37 +20,30 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Check(constraints = "mileage >= 0")
+@Check(constraints = "year > 0")
 public class Car {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotEmpty(message = "Make cannot be null")
     @Column(columnDefinition = "VARCHAR(255) NOT NULL")
     private String make;
 
-    @NotEmpty(message = "Model cannot be null")
     @Column(columnDefinition = "VARCHAR(255) NOT NULL")
     private String model;
 
-    @NotNull(message = "Year cannot be null")
     @Column(columnDefinition = "INT NOT NULL")
     private Integer year;
 
     @Column(columnDefinition = "VARCHAR(255)")
     private String nickname;
 
-    @NotNull(message = "Mileage cannot be null")
-    @PositiveOrZero(message = "mileage must be greater than or equal to zero")
     @Column(columnDefinition = "INT NOT NULL")
     private Integer mileage;
 
-    @NotEmpty(message = "VIN cannot be null")
-    @Size(max = 17, message = "VIN must be 17 characters")
     @Column(columnDefinition = "VARCHAR(17) UNIQUE")
     private String vin;
 
-    @NotNull(message = "Purchase date cannot be null")
     @Column(columnDefinition = "DATE NOT NULL")
     private LocalDate purchaseDate;
 

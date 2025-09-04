@@ -1,8 +1,6 @@
 package com.fkhrayef.motor.Model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,25 +25,18 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotEmpty(message = "Phone cannot be null")
-    @Pattern(regexp = "^(\\+9665[0-9]\\d{8})$")
     @Column(columnDefinition = "VARCHAR(13) NOT NULL UNIQUE")
     private String phone;
 
-    @NotEmpty(message = "Name cannot be null")
     @Column(columnDefinition = "VARCHAR(255) NOT NULL")
     private String name;
 
-    @NotEmpty(message = "Email cannot be null")
-    @Email(message = "Email is not valid")
     @Column(columnDefinition = "VARCHAR(255) NOT NULL UNIQUE")
     private String email;
 
-    @NotEmpty(message = "Password cannot be null")
     @Column(columnDefinition = "VARCHAR(255) NOT NULL")
     private String password;
 
-    @Column(columnDefinition = "VARCHAR(20) NOT NULL")
     @Pattern(regexp = "^(ADMIN|USER)$", message = "Role must be either 'ADMIN' or 'USER'")
     private String role;
 
