@@ -8,10 +8,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Check;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -19,18 +19,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-
+@Check(constraints = "end_date > start_date")
 public class Marketing {
-
-    //  id int [pk, increment]
-    //  title varchar
-    //  offer_type varchar // accessories, insurance, services
-    //  description text
-    //  poster_url varchar
-    //  start_date datetime
-    //  end_date datetime
-    //  created_at datetime
-    //  updated_at datetime
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,11 +44,11 @@ public class Marketing {
     private String posterUrl;
 
     @NotNull(message = "Start date can't be null")
-    @Column(columnDefinition = "date not null")
+    @Column(columnDefinition = "datetime not null")
     private LocalDateTime startDate;
 
     @NotNull(message = "End date can't be null")
-    @Column(columnDefinition = "date not null")
+    @Column(columnDefinition = "datetime not null")
     private LocalDateTime endDate;
 
     @CreationTimestamp

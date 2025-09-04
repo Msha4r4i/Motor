@@ -2,6 +2,7 @@ package com.fkhrayef.motor.Model;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -21,17 +22,6 @@ import java.time.LocalDateTime;
 @Entity
 public class Reminder {
 
-
-    //id int [pk, increment]
-    //  car_id int [ref: > Cars.id]
-    //  user_id int [ref: > Users.id]
-    //  type varchar // license_expiry, insurance_expiry, registration_expiry, maintenance
-    //  due_date datetime
-    //  message text
-    //  is_sent boolean
-    //  created_at datetime
-    //  updated_at datetime
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -41,8 +31,9 @@ public class Reminder {
     private String type;
 
     @NotNull(message = "Due date can't be null")
+    @FutureOrPresent(message = "Due date cannot be in the past")
     @Column(columnDefinition = "date not null")
-    private LocalDateTime dueDate;
+    private LocalDate dueDate;
 
     @NotEmpty(message = "Message can't be null")
     @Column(columnDefinition = "varchar(255) not null")
