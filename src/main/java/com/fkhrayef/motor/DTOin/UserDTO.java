@@ -14,7 +14,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UserDTO {
     @NotEmpty(message = "Phone cannot be null")
-    @Pattern(regexp = "^(\\+9665[0-9]\\d{8})$")
+    @Pattern(regexp = "^(\\+9665\\d{8})$")
     private String phone;
 
     @NotEmpty(message = "Name cannot be null")
