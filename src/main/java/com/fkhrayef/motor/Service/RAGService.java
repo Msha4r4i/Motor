@@ -31,7 +31,7 @@ public class RAGService {
                     .retrieve()
                     .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
                             clientResponse -> clientResponse.bodyToMono(String.class)
-                                    .map(body -> new RuntimeException("HTTP " + clientResponse.statusCode() + ": " + body)))
+                                    .map(body -> new ApiException("HTTP " + clientResponse.statusCode() + ": " + body)))
                     .bodyToMono(QuestionResponse.class)
                     .block();
 
@@ -62,15 +62,16 @@ public class RAGService {
                 "document_name", documentName
             );
 
-            String response = ragApiClient
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = ragApiClient
                     .post()
                     .uri("/process-s3")
                     .bodyValue(request)
                     .retrieve()
-                    .bodyToMono(String.class)
+                    .bodyToMono(Map.class)
                     .block();
 
-            return response != null && response.contains("success");
+            return response != null && Boolean.TRUE.equals(response.get("success"));
 
         } catch (Exception e) {
             throw new ApiException("Failed to process document: " + e.getMessage());
@@ -87,17 +88,20 @@ public class RAGService {
                     .bodyToMono(Map.class)
                     .block();
             
+            if (response == null) {
+                throw new ApiException("Empty response from RAG /documents/info");
+            }
             DocumentsInfoResponse dto = new DocumentsInfoResponse();
-            dto.setTotal_documents((Integer) response.get("total_documents"));
+            dto.setTotal_documents(((Number) response.getOrDefault("total_documents", 0)).intValue());
             @SuppressWarnings("unchecked")
-            List<String> documentNames = (List<String>) response.get("document_names");
+            List<String> documentNames = (List<String>) response.getOrDefault("document_names", java.util.List.of());
             dto.setDocument_names(documentNames);
             @SuppressWarnings("unchecked")
-            Map<String, Integer> documentsCount = (Map<String, Integer>) response.get("documents_count");
+            Map<String, Integer> documentsCount = (Map<String, Integer>) response.getOrDefault("documents_count", java.util.Map.of());
             dto.setDocuments_count(documentsCount);
-            dto.setVectorstores_ready((Integer) response.get("vectorstores_ready"));
-            dto.setRag_chains_ready((Integer) response.get("rag_chains_ready"));
-            dto.setS3_enabled((Boolean) response.get("s3_enabled"));
+            dto.setVectorstores_ready(((Number) response.getOrDefault("vectorstores_ready", 0)).intValue());
+            dto.setRag_chains_ready(((Number) response.getOrDefault("rag_chains_ready", 0)).intValue());
+            dto.setS3_enabled(Boolean.TRUE.equals(response.get("s3_enabled")));
             
             return dto;
         } catch (Exception e) {

@@ -81,6 +81,10 @@ public class CarAIService {
             throw new ApiException("Car not found with id: " + carId);
         }
 
+        if (question == null || question.trim().isEmpty()) {
+            throw new ApiException("Question must not be empty");
+        }
+
         // Generate document name from car details
         String documentName = generateDocumentName(car);
 

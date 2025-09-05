@@ -17,7 +17,10 @@ public class RAGApiConfig {
     public WebClient ragApiClient() {
         return WebClient.builder()
                 .baseUrl(ragApiUrl)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeaders(h -> {
+                    h.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+                    h.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+                })
                 .build();
     }
 }
