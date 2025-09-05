@@ -38,4 +38,9 @@ public class MaintenanceController {
         maintenanceService.deleteMaintenance(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    @GetMapping("/get/{carId}")
+    public ResponseEntity<?> getMaintenancesByCarId(@PathVariable Integer carId) {
+        return ResponseEntity.status(HttpStatus.OK).body(maintenanceService.getMaintenancesByCarId(carId));
+    }
 }

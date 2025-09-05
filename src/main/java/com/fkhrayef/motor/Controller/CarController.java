@@ -38,4 +38,10 @@ public class CarController {
         carService.deleteCar(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    @GetMapping("/get/{userId}")
+    public ResponseEntity<?> getCarsByUserId(@PathVariable Integer userId) {
+        return ResponseEntity.status(HttpStatus.OK).body(carService.getCarsByUserId(userId));
+    }
+
 }
