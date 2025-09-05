@@ -3,6 +3,7 @@ package com.fkhrayef.motor.Service;
 import com.fkhrayef.motor.Api.ApiException;
 import com.fkhrayef.motor.DTOin.ReminderDTO;
 import com.fkhrayef.motor.Model.Car;
+import com.fkhrayef.motor.Model.Maintenance;
 import com.fkhrayef.motor.Model.Reminder;
 import com.fkhrayef.motor.Repository.CarRepository;
 import com.fkhrayef.motor.Repository.ReminderRepository;
@@ -58,6 +59,15 @@ public class ReminderService {
             throw new ApiException("Reminder not found");
         }
         reminderRepository.delete(reminder);
+    }
+
+    public List<Reminder> getRemindersByCarId(Integer carId){
+        Car car = carRepository.findCarById(carId);
+
+        if (car == null){
+            throw new ApiException("Car not found");
+        }
+        return reminderRepository.findRemindersByCarId(car.getId());
     }
 
 }

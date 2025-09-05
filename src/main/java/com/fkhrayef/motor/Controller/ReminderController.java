@@ -39,4 +39,9 @@ public class ReminderController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @GetMapping("/get/{carId}")
+    public ResponseEntity<?> getRemindersByCarId(@PathVariable Integer carId) {
+        return ResponseEntity.status(HttpStatus.OK).body(reminderService.getRemindersByCarId(carId));
+    }
+
 }
