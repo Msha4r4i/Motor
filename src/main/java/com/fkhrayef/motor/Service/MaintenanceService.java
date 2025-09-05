@@ -19,11 +19,11 @@ public class MaintenanceService {
     private final MaintenanceRepository maintenanceRepository;
     private final CarRepository carRepository;
 
-    public List<Maintenance> getAllMaintenance(){
+    public List<Maintenance> getAllMaintenances(){
         return maintenanceRepository.findAll();
     }
 
-    public void addMaintenance(Integer carId,MaintenanceDTO maintenanceDTO){
+    public void addMaintenance(Integer carId, MaintenanceDTO maintenanceDTO){
         Car car = carRepository.findCarById(carId);
         if (car == null){
             throw new ApiException("Car not found !");

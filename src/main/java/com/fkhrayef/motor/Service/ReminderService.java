@@ -19,19 +19,15 @@ public class ReminderService {
     private final CarRepository carRepository;
 
 
-    public List<Reminder> getAllReminder(){
+    public List<Reminder> getAllReminders(){
         return reminderRepository.findAll();
-    }
-
-    public Reminder getReminderById(Integer id) {
-        Reminder r = reminderRepository.findReminderById(id);
-        if (r == null) throw new ApiException("Reminder not found");
-        return r;
     }
 
     public void addReminder(Integer carId, ReminderDTO reminderDTO) {
         Car car = carRepository.findCarById(carId);
-        if (car == null) throw new ApiException("Car not found");
+        if (car == null) {
+            throw new ApiException("Car not found");
+        }
 
         Reminder reminder = new Reminder();
 
@@ -44,19 +40,23 @@ public class ReminderService {
         reminderRepository.save(reminder);
     }
 
-    public void updateReminder(Integer id, ReminderDTO dto) {
+    public void updateReminder(Integer id, ReminderDTO reminderDTO) {
         Reminder reminder = reminderRepository.findReminderById(id);
-        if (reminder == null) throw new ApiException("Reminder not found");
+        if (reminder == null) {
+            throw new ApiException("Reminder not found");
+        }
 
-        reminder.setType(dto.getType());
-        reminder.setDueDate(dto.getDueDate());
-        reminder.setMessage(dto.getMessage());
+        reminder.setType(reminderDTO.getType());
+        reminder.setDueDate(reminderDTO.getDueDate());
+        reminder.setMessage(reminderDTO.getMessage());
         reminderRepository.save(reminder);
     }
 
     public void deleteReminder(Integer id) {
         Reminder reminder = reminderRepository.findReminderById(id);
-        if (reminder == null) throw new ApiException("Reminder not found");
+        if (reminder == null) {
+            throw new ApiException("Reminder not found");
+        }
         reminderRepository.delete(reminder);
     }
 
