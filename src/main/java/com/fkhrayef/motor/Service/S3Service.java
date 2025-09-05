@@ -30,6 +30,38 @@ public class S3Service {
                 RequestBody.fromBytes(file.getBytes()));
     }
 
+    // upload catalog file with structured naming
+    public String uploadCatalogFile(MultipartFile file, String catalogPath) throws IOException {
+        String key = "catalogs/" + catalogPath;
+        
+        s3Client.putObject(PutObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .contentType(file.getContentType())
+                        .build(),
+                RequestBody.fromBytes(file.getBytes()));
+        
+        return generateS3Url(key);
+    }
+
+    // generate S3 URL for a given key
+    public String generateS3Url(String key) {
+        return String.format("https://%s.s3.eu-central-1.amazonaws.com/%s", bucketName, key);
+    }
+
+    // check if catalog file exists
+    public boolean catalogFileExists(String catalogPath) {
+        try {
+            s3Client.headObject(software.amazon.awssdk.services.s3.model.HeadObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key("catalogs/" + catalogPath)
+                    .build());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public byte[] downloadFile(String key) {
         ResponseBytes<GetObjectResponse> objectAsBytes =
                 s3Client.getObjectAsBytes(GetObjectRequest.builder()
