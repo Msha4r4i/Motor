@@ -22,7 +22,7 @@ public class CarService {
         return carRepository.findAll();
     }
 
-    // TODO: add endpoint to retrieve car by user id!
+    // TODO: add endpoint to retrieve cars by user id!
 
     public void addCar(Integer userId, CarDTO carDTO) {
         User user = userRepository.findUserById(userId);
@@ -43,7 +43,7 @@ public class CarService {
         carRepository.save(car);
     }
 
-    // TODO: add endpoints to enter registration and insurance
+    // TODO: add endpoints to enter registration and insurance (Faisal)
 
     public void updateCar(Integer id, CarDTO carDTO) {
         Car car = carRepository.findCarById(id);
