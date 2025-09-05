@@ -41,6 +41,8 @@ public class Subscription {
     @Column(columnDefinition = "datetime not null")
     private LocalDateTime endDate;
 
+    private Boolean isActive = false;
+
     // Relations
     @ManyToOne
     @JsonIgnore
