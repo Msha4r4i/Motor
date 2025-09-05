@@ -29,7 +29,8 @@ public class ReminderDTO {
     @NotEmpty(message = "Message can't be null")
     private String message;
 
-    @NotNull(message = "isSent can't be null")
-    private Boolean isSent;
+    //todo
+//    @NotNull(message = "isSent can't be null")
+//    private Boolean isSent;
 
 }
