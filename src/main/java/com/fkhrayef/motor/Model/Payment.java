@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Check(constraints = "amount > 0")
+@Check(constraints = "payment_type IN ('subscription')")
 @Check(constraints = "status IN ('initiated','pending','paid','captured','failed','expired','refunded','partially_refunded')")
 public class Payment {
 
@@ -32,6 +33,9 @@ public class Payment {
     private Double amount;
 
     @Column(columnDefinition = "VARCHAR(20)")
+    private String paymentType;
+
+    @Column(columnDefinition = "VARCHAR(20)")
     private String status;
 
     @Column(columnDefinition = "VARCHAR(3) DEFAULT 'SAR'")
@@ -41,6 +45,10 @@ public class Payment {
     private String description;
 
     // Relations
+    @ManyToOne
+    @JsonIgnore
+    private User user;
+
     @ManyToOne
     @JsonIgnore
     private Subscription subscription;

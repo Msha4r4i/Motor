@@ -41,7 +41,7 @@ public class User {
     private String role;
 
     // License Information (Optional)
-    @Column(columnDefinition = "VARCHAR(255)")
+    @Column(columnDefinition = "VARCHAR(4096)")
     private String licenseFileUrl;
     @Column(columnDefinition = "DATE")
     private LocalDate licenseExpiry;
@@ -63,7 +63,17 @@ public class User {
     private Set<Car> cars;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
-    private Set<Subscription> subscription;
+    private Set<Payment> payments;
+
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
+    @PrimaryKeyJoinColumn
+    private Subscription subscription;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "fromUser")
+    private Set<CarTransferRequest> sentTransferRequests;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "toUser")
+    private Set<CarTransferRequest> receivedTransferRequests;
 
     // Timestamps
     @CreationTimestamp
