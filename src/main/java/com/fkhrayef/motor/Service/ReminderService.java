@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -81,12 +82,18 @@ public class ReminderService {
         return reminderRepository.findRemindersByCarId(car.getId());
     }
 
+    @Transactional
     public void generateAndSaveMaintenanceReminders(Integer carId) {
 
         // Find the car
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found");
+        }
+
+        // Mileage is required by RAG and cannot be null (Map.of forbids nulls)
+        if (car.getMileage() == null) {
+            throw new ApiException("Car mileage is required to generate maintenance reminders.");
         }
 
         // Generate document name from car details (same as /ask endpoint)
@@ -101,26 +108,30 @@ public class ReminderService {
         MaintenanceReminderResponseDTO ragResponse = ragService.generateMaintenanceReminders(car.getMileage(), documentName);
 
         if (ragResponse == null || !ragResponse.getSuccess()) {
-            throw new ApiException("Failed to generate maintenance reminders: " + 
+            throw new ApiException("Failed to generate maintenance reminders: " +
                 (ragResponse != null ? ragResponse.getError() : "Unknown error"));
         }
+        if (ragResponse.getReminders() == null || ragResponse.getReminders().isEmpty()) {
+            throw new ApiException("RAG returned no maintenance reminders for this car/manual.");
+        }
 
-        // Convert RAG response to Reminder entities and save
-        ragResponse.getReminders().stream()
+        // Convert RAG response to Reminder entities and save in batch
+        List<Reminder> toSave = ragResponse.getReminders().stream()
                 .map(reminderData -> {
                     Reminder reminder = new Reminder();
                     reminder.setType("maintenance");
-                    reminder.setDueDate(LocalDate.parse(reminderData.getDueDate()));
+                    reminder.setDueDate(LocalDate.parse(reminderData.getDueDate().trim()));
                     reminder.setMessage(reminderData.getMessage());
                     reminder.setMileage(reminderData.getMileage());
                     reminder.setPriority(reminderData.getPriority());
                     reminder.setCategory(reminderData.getCategory());
                     reminder.setCar(car);
                     reminder.setIsSent(false);
-
-                    return reminderRepository.save(reminder);
+                    return reminder;
                 })
                 .collect(Collectors.toList());
+
+        reminderRepository.saveAll(toSave);
     }
 
     // Helper method to generate document name from car details (same as CarAIService)
@@ -144,16 +155,21 @@ public class ReminderService {
             LocalDate nextWeek = today.plusDays(7);
             LocalDate tomorrow = today.plusDays(1);
             
-            // Get reminders due in the next week (not yet sent weekly notification)
-            List<Reminder> upcomingReminders = reminderRepository.findAll().stream()
-                    .filter(reminder -> !reminder.getIsSent())
-                    .filter(reminder -> reminder.getDueDate().isAfter(today))
-                    .filter(reminder -> reminder.getDueDate().isBefore(nextWeek) || reminder.getDueDate().isEqual(nextWeek))
+            // Fetch once
+            List<Reminder> allReminders = reminderRepository.findAll();
+
+            // Daily: due tomorrow (send regardless of isSent)
+            List<Reminder> tomorrowReminders = allReminders.stream()
+                    .filter(r -> r.getDueDate() != null)
+                    .filter(r -> r.getDueDate().isEqual(tomorrow))
                     .collect(Collectors.toList());
-            
-            // Get reminders due tomorrow (always send, regardless of isSent status)
-            List<Reminder> tomorrowReminders = reminderRepository.findAll().stream()
-                    .filter(reminder -> reminder.getDueDate().isEqual(tomorrow))
+
+            // Weekly: due in 2..7 days (exclude 'tomorrow' to avoid duplicate sends)
+            List<Reminder> upcomingReminders = allReminders.stream()
+                    .filter(r -> Boolean.FALSE.equals(r.getIsSent()))
+                    .filter(r -> r.getDueDate() != null)
+                    .filter(r -> r.getDueDate().isAfter(tomorrow))      // > tomorrow
+                    .filter(r -> !r.getDueDate().isAfter(nextWeek))     // <= nextWeek
                     .collect(Collectors.toList());
             
             // Send notifications for reminders due in next week
@@ -265,6 +281,7 @@ public class ReminderService {
      * Get reminder type in Arabic
      */
     private String getReminderTypeInArabic(String type) {
+        if (type == null) return "غير معروف";
         switch (type) {
             case "maintenance":
                 return "صيانة";
@@ -283,6 +300,7 @@ public class ReminderService {
      * Get priority in Arabic
      */
     private String getPriorityInArabic(String priority) {
+        if (priority == null) return "غير معروف";
         switch (priority.toLowerCase()) {
             case "high":
                 return "عالي";

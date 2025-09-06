@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Check(constraints = "type IN ('license_expiry','insurance_expiry','registration_expiry','maintenance')")
+@Check(constraints = "mileage >= 0")
 public class Reminder {
 
     @Id
