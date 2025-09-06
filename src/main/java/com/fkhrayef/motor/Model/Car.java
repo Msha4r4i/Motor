@@ -70,6 +70,9 @@ public class Car {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "car" )
     private Set<Reminder> reminders;
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "car")
+    private Set<CarTransferRequest> transferRequests;
+
     // Timestamps
     @CreationTimestamp
     @Column(updatable = false)
