@@ -131,8 +131,8 @@ public class ReminderService {
                 })
                 .filter(reminder -> {
                     // Check if reminder already exists (same car, type, dueDate, message)
-                    return reminderRepository.findByCarAndTypeAndDueDateAndMessage(
-                            car, "maintenance", reminder.getDueDate(), reminder.getMessage()) == null;
+                    return !reminderRepository.existsByCarAndTypeAndDueDateAndMessage(
+                            car, "maintenance", reminder.getDueDate(), reminder.getMessage());
                 })
                 .collect(Collectors.toList());
 

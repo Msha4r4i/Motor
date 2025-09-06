@@ -14,5 +14,5 @@ public interface ReminderRepository extends JpaRepository<Reminder, Integer> {
 
     List<Reminder> findRemindersByCarId(Integer id);
     
-    Reminder findByCarAndTypeAndDueDateAndMessage(Car car, String type, LocalDate dueDate, String message);
+    boolean existsByCarAndTypeAndDueDateAndMessage(Car car, String type, LocalDate dueDate, String message);
 }
