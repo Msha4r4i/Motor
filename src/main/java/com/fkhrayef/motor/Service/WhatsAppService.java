@@ -3,10 +3,14 @@ package com.fkhrayef.motor.Service;
 import com.fkhrayef.motor.Api.ApiException;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class WhatsAppService {
+
+    @Value("${WHATSAPP_API_KEY}")
+    private String whatsappKey;
 
     public WhatsAppService() {
         Unirest.config().reset()      // clear previous (devtools restarts)
@@ -14,15 +18,15 @@ public class WhatsAppService {
                 .connectTimeout(5_000);  // 5 sec max wait for connection
     }
 
-    public void sendWhatsAppMessage(String message) {
+    public void sendWhatsAppMessage(String message, String to) {
         if (message == null || message.isBlank()) {
             throw new ApiException("Message must not be blank");
         }
         try {
-            HttpResponse<String> res = Unirest.post("https://api.ultramsg.com/instance141844/messages/chat")
+            HttpResponse<String> res = Unirest.post("https://api.ultramsg.com/instance141915/messages/chat")
                     .header("Content-Type", "application/x-www-form-urlencoded")
-                    .field("token", "WHATSAPP_API_KEY")
-                    .field("to", "966556663948")
+                    .field("token", whatsappKey)
+                    .field("to", to)
                     .field("body", message)
                     .asString();
 
