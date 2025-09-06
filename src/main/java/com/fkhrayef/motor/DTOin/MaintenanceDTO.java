@@ -14,8 +14,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class MaintenanceDTO {
 
-    private Integer id;
-
     @NotEmpty(message = "recordType must not be Empty")
     @Pattern(regexp = "^(MAINTENANCE|ACCIDENT)$", message = "Record type must be either 'MAINTENANCE' or 'ACCIDENT'")
     private String recordType;
@@ -32,12 +30,5 @@ public class MaintenanceDTO {
     private Integer mileage;
 
     private String notes;
-
-    // Invoice
-    @NotNull(message = "Invoice file URL cannot be null")
-    private String invoiceFileUrl;
-
-    @NotNull(message = "Invoice amount cannot be null")
-    private Double invoiceAmount;
 
 }
