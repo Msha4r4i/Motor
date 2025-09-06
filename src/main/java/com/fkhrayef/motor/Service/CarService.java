@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class CarService {
         if (user == null) {
             throw new ApiException("User not found");
         }
+        validateCarMakeAndModel(carDTO);
 
         Car car = new Car();
         car.setMake(carDTO.getMake());
@@ -50,6 +53,8 @@ public class CarService {
         if (car == null) {
             throw new ApiException("Car not found");
         }
+
+        validateCarMakeAndModel(carDTO);
 
         car.setMake(carDTO.getMake());
         car.setModel(carDTO.getModel());
@@ -79,5 +84,32 @@ public class CarService {
         }
 
         return carRepository.findCarsByUserId(user.getId());
+    }
+
+    private static final Map<String, Set<String>> MAKE_MODELS = Map.ofEntries(
+            Map.entry("Toyota", Set.of("Land Cruiser","Prado","Camry","Corolla","Hilux","Yaris","Avalon")),
+            Map.entry("Lexus", Set.of("LX570","ES350")),
+            Map.entry("Hyundai", Set.of("Sonata","Elantra","Tucson","Palisade")),
+            Map.entry("Nissan", Set.of("Altima","Patrol","X-Trail","Sentra")),
+            Map.entry("Kia", Set.of("Sportage","Sorento")),
+            Map.entry("Chevrolet", Set.of("Tahoe","Suburban","Silverado")),
+            Map.entry("GMC", Set.of("Yukon","Sierra")),
+            Map.entry("Ford", Set.of("F-150","Explorer")),
+            Map.entry("Mazda", Set.of("CX-5")),
+            Map.entry("Mitsubishi", Set.of("L200")),
+            Map.entry("Isuzu", Set.of("D-Max"))
+    );
+
+
+    public void validateCarMakeAndModel(CarDTO carDTO) {
+        String make = carDTO.getMake();
+        String model = carDTO.getModel();
+
+        if (!MAKE_MODELS.containsKey(make)) {
+            throw new ApiException("Unsupported make: " + make);
+        }
+        if (!MAKE_MODELS.get(make).contains(model)) {
+            throw new ApiException("Model " + model + " does not belong to " + make);
+        }
     }
 }
