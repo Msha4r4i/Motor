@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 
 import java.io.IOException;
 
@@ -60,6 +61,87 @@ public class S3Service {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    // upload license file with unique naming using user ID and phone
+    public String uploadLicenseFile(MultipartFile file, String userId, String phone) throws IOException {
+        // Generate unique filename: user-{userId}-{phone}-license.pdf
+        String fileName = String.format("user-%s-%s-license.pdf", userId, phone);
+        String key = "licenses/" + fileName;
+        
+        s3Client.putObject(PutObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .contentType(file.getContentType())
+                        .build(),
+                RequestBody.fromBytes(file.getBytes()));
+        
+        return generateS3Url(key);
+    }
+
+    // upload car registration file with unique naming using car ID and make-model
+    public String uploadRegistrationFile(MultipartFile file, String carId, String make, String model) throws IOException {
+        // Generate unique filename: car-{carId}-{make}-{model}-registration.pdf
+        String fileName = String.format("car-%s-%s-%s-registration.pdf", 
+                carId, 
+                make.toLowerCase().replace(" ", "-"), 
+                model.toLowerCase().replace(" ", "-"));
+        String key = "registrations/" + fileName;
+        
+        s3Client.putObject(PutObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .contentType(file.getContentType())
+                        .build(),
+                RequestBody.fromBytes(file.getBytes()));
+        
+        return generateS3Url(key);
+    }
+
+    // upload car insurance file with unique naming using car ID and make-model
+    public String uploadInsuranceFile(MultipartFile file, String carId, String make, String model) throws IOException {
+        // Generate unique filename: car-{carId}-{make}-{model}-insurance.pdf
+        String fileName = String.format("car-%s-%s-%s-insurance.pdf", 
+                carId, 
+                make.toLowerCase().replace(" ", "-"), 
+                model.toLowerCase().replace(" ", "-"));
+        String key = "insurances/" + fileName;
+        
+        s3Client.putObject(PutObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .contentType(file.getContentType())
+                        .build(),
+                RequestBody.fromBytes(file.getBytes()));
+        
+        return generateS3Url(key);
+    }
+
+    // upload maintenance invoice file with unique naming using maintenance ID and car info
+    public String uploadMaintenanceInvoiceFile(MultipartFile file, String maintenanceId, String carMake, String carModel) throws IOException {
+        // Generate unique filename: maintenance-{maintenanceId}-{carMake}-{carModel}-invoice.pdf
+        String fileName = String.format("maintenance-%s-%s-%s-invoice.pdf", 
+                maintenanceId, 
+                carMake.toLowerCase().replace(" ", "-"), 
+                carModel.toLowerCase().replace(" ", "-"));
+        String key = "maintenance-invoices/" + fileName;
+        
+        s3Client.putObject(PutObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .contentType(file.getContentType())
+                        .build(),
+                RequestBody.fromBytes(file.getBytes()));
+        
+        return generateS3Url(key);
+    }
+
+    // delete file from S3
+    public void deleteFile(String key) {
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build());
     }
 
     public byte[] downloadFile(String key) {

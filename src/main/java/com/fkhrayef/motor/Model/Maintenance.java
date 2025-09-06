@@ -2,7 +2,6 @@ package com.fkhrayef.motor.Model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,11 +39,11 @@ public class Maintenance {
 
     private String notes;
 
-    // Invoice
-    @Column(columnDefinition = "VARCHAR(255) NOT NULL")
+    // Invoice (optional - can be added later via upload endpoint)
+    @Column(columnDefinition = "VARCHAR(4096)")
     private String invoiceFileUrl;
 
-    @Column(columnDefinition = "DOUBLE NOT NULL")
+    @Column(columnDefinition = "DOUBLE")
     private Double invoiceAmount;
 
     // Relations
