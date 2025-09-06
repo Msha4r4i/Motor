@@ -79,6 +79,44 @@ public class S3Service {
         return generateS3Url(key);
     }
 
+    // upload car registration file with unique naming using car ID and make-model
+    public String uploadRegistrationFile(MultipartFile file, String carId, String make, String model) throws IOException {
+        // Generate unique filename: car-{carId}-{make}-{model}-registration.pdf
+        String fileName = String.format("car-%s-%s-%s-registration.pdf", 
+                carId, 
+                make.toLowerCase().replace(" ", "-"), 
+                model.toLowerCase().replace(" ", "-"));
+        String key = "registrations/" + fileName;
+        
+        s3Client.putObject(PutObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .contentType(file.getContentType())
+                        .build(),
+                RequestBody.fromBytes(file.getBytes()));
+        
+        return generateS3Url(key);
+    }
+
+    // upload car insurance file with unique naming using car ID and make-model
+    public String uploadInsuranceFile(MultipartFile file, String carId, String make, String model) throws IOException {
+        // Generate unique filename: car-{carId}-{make}-{model}-insurance.pdf
+        String fileName = String.format("car-%s-%s-%s-insurance.pdf", 
+                carId, 
+                make.toLowerCase().replace(" ", "-"), 
+                model.toLowerCase().replace(" ", "-"));
+        String key = "insurances/" + fileName;
+        
+        s3Client.putObject(PutObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .contentType(file.getContentType())
+                        .build(),
+                RequestBody.fromBytes(file.getBytes()));
+        
+        return generateS3Url(key);
+    }
+
     // delete file from S3
     public void deleteFile(String key) {
         s3Client.deleteObject(DeleteObjectRequest.builder()

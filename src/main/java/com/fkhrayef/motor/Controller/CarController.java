@@ -5,9 +5,14 @@ import com.fkhrayef.motor.DTOin.CarDTO;
 import com.fkhrayef.motor.Service.CarService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/v1/cars")
@@ -42,6 +47,118 @@ public class CarController {
     @GetMapping("/get/{userId}")
     public ResponseEntity<?> getCarsByUserId(@PathVariable Integer userId) {
         return ResponseEntity.status(HttpStatus.OK).body(carService.getCarsByUserId(userId));
+    }
+
+    // Registration file management endpoints
+    @PostMapping("/upload-registration/{id}")
+    public ResponseEntity<?> uploadRegistration(
+            @PathVariable Integer id,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("registrationExpiry") String registrationExpiry) {
+
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse("Registration file is required"));
+        }
+
+        if (registrationExpiry == null || registrationExpiry.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse("Registration expiry date is required"));
+        }
+
+        try {
+            LocalDate expiryDate = LocalDate.parse(registrationExpiry);
+            carService.uploadRegistration(id, file, expiryDate);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponse("Registration uploaded successfully"));
+        } catch (java.time.format.DateTimeParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse("Invalid date format. Please use yyyy-MM-dd format"));
+        }
+    }
+
+    @GetMapping("/download-registration/{id}")
+    public ResponseEntity<?> downloadRegistration(@PathVariable Integer id) {
+        try {
+            byte[] registrationData = carService.downloadRegistration(id);
+            String filename = String.format("car-%d-registration.pdf", id);
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(registrationData);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/delete-registration/{id}")
+    public ResponseEntity<?> deleteRegistration(@PathVariable Integer id) {
+        try {
+            carService.deleteRegistration(id);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ApiResponse("Registration deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(e.getMessage()));
+        }
+    }
+
+    // Insurance file management endpoints
+    @PostMapping("/upload-insurance/{id}")
+    public ResponseEntity<?> uploadInsurance(
+            @PathVariable Integer id,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("insuranceEndDate") String insuranceEndDate) {
+
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse("Insurance file is required"));
+        }
+
+        if (insuranceEndDate == null || insuranceEndDate.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse("Insurance end date is required"));
+        }
+
+        try {
+            LocalDate endDate = LocalDate.parse(insuranceEndDate);
+            carService.uploadInsurance(id, file, endDate);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponse("Insurance uploaded successfully"));
+        } catch (java.time.format.DateTimeParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse("Invalid date format. Please use yyyy-MM-dd format"));
+        }
+    }
+
+    @GetMapping("/download-insurance/{id}")
+    public ResponseEntity<?> downloadInsurance(@PathVariable Integer id) {
+        try {
+            byte[] insuranceData = carService.downloadInsurance(id);
+            String filename = String.format("car-%d-insurance.pdf", id);
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(insuranceData);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/delete-insurance/{id}")
+    public ResponseEntity<?> deleteInsurance(@PathVariable Integer id) {
+        try {
+            carService.deleteInsurance(id);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ApiResponse("Insurance deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(e.getMessage()));
+        }
     }
 
 }

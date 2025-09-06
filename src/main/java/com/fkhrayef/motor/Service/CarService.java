@@ -8,7 +8,9 @@ import com.fkhrayef.motor.Repository.CarRepository;
 import com.fkhrayef.motor.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -17,6 +19,7 @@ public class CarService {
 
     private final CarRepository carRepository;
     private final UserRepository userRepository;
+    private final S3Service s3Service;
 
     public List<Car> getAllCars() {
         return carRepository.findAll();
@@ -43,7 +46,175 @@ public class CarService {
         carRepository.save(car);
     }
 
-    // TODO: add endpoints to enter registration and insurance (Faisal)
+    // Registration file management
+    public void uploadRegistration(Integer carId, MultipartFile file, LocalDate registrationExpiry) {
+        // Get car details from database
+        Car car = carRepository.findCarById(carId);
+        if (car == null) {
+            throw new ApiException("Car not found with id: " + carId);
+        }
+
+        // Validate file type
+        String fileName = file.getOriginalFilename();
+        if (fileName == null || !fileName.toLowerCase().endsWith(".pdf")) {
+            throw new ApiException("Only PDF files are allowed for registration upload");
+        }
+
+        // Validate file size (max 10MB)
+        if (file.getSize() > 10 * 1024 * 1024) {
+            throw new ApiException("Registration file size cannot exceed 10MB");
+        }
+
+        // Validate registration expiry date
+        if (registrationExpiry.isBefore(LocalDate.now())) {
+            throw new ApiException("Registration expiry date must be in the future");
+        }
+
+        // Upload to S3 with unique naming
+        String s3Url;
+        try {
+            s3Url = s3Service.uploadRegistrationFile(file, carId.toString(), car.getMake(), car.getModel());
+        } catch (Exception e) {
+            throw new ApiException("Failed to upload registration file: " + e.getMessage());
+        }
+
+        // Update car record with registration information
+        car.setRegistrationFileUrl(s3Url);
+        car.setRegistrationExpiry(registrationExpiry);
+        carRepository.save(car);
+    }
+
+    public byte[] downloadRegistration(Integer carId) {
+        // Get car details from database
+        Car car = carRepository.findCarById(carId);
+        if (car == null) {
+            throw new ApiException("Car not found with id: " + carId);
+        }
+
+        if (car.getRegistrationFileUrl() == null) {
+            throw new ApiException("No registration file found for this car");
+        }
+
+        // Extract the S3 key from the URL
+        String s3Url = car.getRegistrationFileUrl();
+        String key = s3Url.substring(s3Url.indexOf("/registrations/") + 1); // Extract "registrations/car-123-toyota-camry-registration.pdf"
+
+        // Download file from S3
+        return s3Service.downloadFile(key);
+    }
+
+    public void deleteRegistration(Integer carId) {
+        // Get car details from database
+        Car car = carRepository.findCarById(carId);
+        if (car == null) {
+            throw new ApiException("Car not found with id: " + carId);
+        }
+
+        if (car.getRegistrationFileUrl() == null) {
+            throw new ApiException("No registration file found for this car");
+        }
+
+        // Extract the S3 key from the URL
+        String s3Url = car.getRegistrationFileUrl();
+        String key = s3Url.substring(s3Url.indexOf("/registrations/") + 1); // Extract "registrations/car-123-toyota-camry-registration.pdf"
+
+        // Delete file from S3
+        try {
+            s3Service.deleteFile(key);
+        } catch (Exception e) {
+            throw new ApiException("Failed to delete registration file from S3: " + e.getMessage());
+        }
+
+        // Clear registration information from car record
+        car.setRegistrationFileUrl(null);
+        car.setRegistrationExpiry(null);
+        carRepository.save(car);
+    }
+
+    // Insurance file management
+    public void uploadInsurance(Integer carId, MultipartFile file, LocalDate insuranceEndDate) {
+        // Get car details from database
+        Car car = carRepository.findCarById(carId);
+        if (car == null) {
+            throw new ApiException("Car not found with id: " + carId);
+        }
+
+        // Validate file type
+        String fileName = file.getOriginalFilename();
+        if (fileName == null || !fileName.toLowerCase().endsWith(".pdf")) {
+            throw new ApiException("Only PDF files are allowed for insurance upload");
+        }
+
+        // Validate file size (max 10MB)
+        if (file.getSize() > 10 * 1024 * 1024) {
+            throw new ApiException("Insurance file size cannot exceed 10MB");
+        }
+
+        // Validate insurance end date
+        if (insuranceEndDate.isBefore(LocalDate.now())) {
+            throw new ApiException("Insurance end date must be in the future");
+        }
+
+        // Upload to S3 with unique naming
+        String s3Url;
+        try {
+            s3Url = s3Service.uploadInsuranceFile(file, carId.toString(), car.getMake(), car.getModel());
+        } catch (Exception e) {
+            throw new ApiException("Failed to upload insurance file: " + e.getMessage());
+        }
+
+        // Update car record with insurance information
+        car.setInsuranceFileUrl(s3Url);
+        car.setInsuranceEndDate(insuranceEndDate);
+        carRepository.save(car);
+    }
+
+    public byte[] downloadInsurance(Integer carId) {
+        // Get car details from database
+        Car car = carRepository.findCarById(carId);
+        if (car == null) {
+            throw new ApiException("Car not found with id: " + carId);
+        }
+
+        if (car.getInsuranceFileUrl() == null) {
+            throw new ApiException("No insurance file found for this car");
+        }
+
+        // Extract the S3 key from the URL
+        String s3Url = car.getInsuranceFileUrl();
+        String key = s3Url.substring(s3Url.indexOf("/insurances/") + 1); // Extract "insurances/car-123-toyota-camry-insurance.pdf"
+
+        // Download file from S3
+        return s3Service.downloadFile(key);
+    }
+
+    public void deleteInsurance(Integer carId) {
+        // Get car details from database
+        Car car = carRepository.findCarById(carId);
+        if (car == null) {
+            throw new ApiException("Car not found with id: " + carId);
+        }
+
+        if (car.getInsuranceFileUrl() == null) {
+            throw new ApiException("No insurance file found for this car");
+        }
+
+        // Extract the S3 key from the URL
+        String s3Url = car.getInsuranceFileUrl();
+        String key = s3Url.substring(s3Url.indexOf("/insurances/") + 1); // Extract "insurances/car-123-toyota-camry-insurance.pdf"
+
+        // Delete file from S3
+        try {
+            s3Service.deleteFile(key);
+        } catch (Exception e) {
+            throw new ApiException("Failed to delete insurance file from S3: " + e.getMessage());
+        }
+
+        // Clear insurance information from car record
+        car.setInsuranceFileUrl(null);
+        car.setInsuranceEndDate(null);
+        carRepository.save(car);
+    }
 
     public void updateCar(Integer id, CarDTO carDTO) {
         Car car = carRepository.findCarById(id);
