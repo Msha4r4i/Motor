@@ -129,6 +129,11 @@ public class ReminderService {
                     reminder.setIsSent(false);
                     return reminder;
                 })
+                .filter(reminder -> {
+                    // Check if reminder already exists (same car, type, dueDate, message)
+                    return reminderRepository.findByCarAndTypeAndDueDateAndMessage(
+                            car, "maintenance", reminder.getDueDate(), reminder.getMessage()) == null;
+                })
                 .collect(Collectors.toList());
 
         reminderRepository.saveAll(toSave);
