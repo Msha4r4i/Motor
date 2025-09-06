@@ -5,9 +5,13 @@ import com.fkhrayef.motor.DTOin.ReminderDTO;
 import com.fkhrayef.motor.DTOout.MaintenanceReminderResponseDTO;
 import com.fkhrayef.motor.Model.Car;
 import com.fkhrayef.motor.Model.Reminder;
+import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.CarRepository;
 import com.fkhrayef.motor.Repository.ReminderRepository;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -21,6 +25,10 @@ public class ReminderService {
     private final ReminderRepository reminderRepository;
     private final CarRepository carRepository;
     private final RAGService ragService;
+    private final WhatsAppService whatsappService;
+    private final EmailService emailService;
+    
+    private static final Logger logger = LoggerFactory.getLogger(ReminderService.class);
 
 
     public List<Reminder> getAllReminders(){
@@ -121,6 +129,170 @@ public class ReminderService {
                 car.getYear(),
                 car.getMake(),
                 car.getModel());
+    }
+
+    /**
+     * Scheduled task to send reminder notifications
+     * Runs daily at 9:00 AM to check for upcoming reminders
+     */
+    @Scheduled(cron = "0 * * * * *") // Every minute (for testing)
+    public void sendReminderNotifications() {
+        try {
+            logger.info("[Scheduler] Starting reminder notification check...");
+            
+            LocalDate today = LocalDate.now();
+            LocalDate nextWeek = today.plusDays(7);
+            LocalDate tomorrow = today.plusDays(1);
+            
+            // Get reminders due in the next week (not yet sent weekly notification)
+            List<Reminder> upcomingReminders = reminderRepository.findAll().stream()
+                    .filter(reminder -> !reminder.getIsSent())
+                    .filter(reminder -> reminder.getDueDate().isAfter(today))
+                    .filter(reminder -> reminder.getDueDate().isBefore(nextWeek) || reminder.getDueDate().isEqual(nextWeek))
+                    .collect(Collectors.toList());
+            
+            // Get reminders due tomorrow (always send, regardless of isSent status)
+            List<Reminder> tomorrowReminders = reminderRepository.findAll().stream()
+                    .filter(reminder -> reminder.getDueDate().isEqual(tomorrow))
+                    .collect(Collectors.toList());
+            
+            // Send notifications for reminders due in next week
+            for (Reminder reminder : upcomingReminders) {
+                try {
+                    sendReminderNotification(reminder, "week");
+                } catch (Exception e) {
+                    logger.error("[Scheduler] Failed to send weekly reminder notification for reminder ID {}: {}", 
+                            reminder.getId(), e.getMessage());
+                }
+            }
+            
+            // Send notifications for reminders due tomorrow
+            for (Reminder reminder : tomorrowReminders) {
+                try {
+                    sendReminderNotification(reminder, "day");
+                } catch (Exception e) {
+                    logger.error("[Scheduler] Failed to send daily reminder notification for reminder ID {}: {}", 
+                            reminder.getId(), e.getMessage());
+                }
+            }
+            
+            logger.info("[Scheduler] Reminder notification check completed. Sent {} weekly and {} daily notifications.", 
+                    upcomingReminders.size(), tomorrowReminders.size());
+                    
+        } catch (Exception e) {
+            logger.error("[Scheduler] Reminder notification job failed: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Send notification for a specific reminder
+     */
+    private void sendReminderNotification(Reminder reminder, String notificationType) {
+        Car car = reminder.getCar();
+        if (car == null) return;
+        
+        User user = car.getUser();
+        if (user == null) return;
+        
+        String message = buildReminderMessage(reminder, car, notificationType);
+        
+        // Send WhatsApp notification
+        try {
+            if (user.getPhone() != null && !user.getPhone().trim().isEmpty()) {
+                whatsappService.sendWhatsAppMessage(message, user.getPhone());
+                logger.info("[Scheduler] WhatsApp notification sent to user {} for reminder ID {}", 
+                        user.getId(), reminder.getId());
+            }
+        } catch (Exception e) {
+            logger.error("[Scheduler] Failed to send WhatsApp notification: {}", e.getMessage());
+        }
+        
+        // Send Email notification
+        try {
+            if (user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
+                String subject = "تذكير صيانة - " + car.getMake() + " " + car.getModel();
+                emailService.sendEmail(user.getEmail(), subject, message);
+                logger.info("[Scheduler] Email notification sent to user {} for reminder ID {}", 
+                        user.getId(), reminder.getId());
+            }
+        } catch (Exception e) {
+            logger.error("[Scheduler] Failed to send email notification: {}", e.getMessage());
+        }
+        
+        // Mark reminder as sent (only for weekly notifications)
+        if (notificationType.equals("week")) {
+            reminder.setIsSent(true);
+            reminderRepository.save(reminder);
+        }
+    }
+    
+    /**
+     * Build reminder message in Arabic
+     */
+    private String buildReminderMessage(Reminder reminder, Car car, String notificationType) {
+        String timeFrame = notificationType.equals("day") ? "غداً" : "خلال الأسبوع القادم";
+        
+        StringBuilder message = new StringBuilder();
+        message.append("🔔 تذكير صيانة\n\n");
+        message.append("📋 تفاصيل السيارة:\n");
+        message.append("• الماركة: ").append(car.getMake()).append("\n");
+        message.append("• الموديل: ").append(car.getModel()).append("\n");
+        message.append("• السنة: ").append(car.getYear()).append("\n\n");
+        
+        message.append("⚠️ التذكير:\n");
+        message.append("• النوع: ").append(getReminderTypeInArabic(reminder.getType())).append("\n");
+        message.append("• التاريخ: ").append(reminder.getDueDate()).append(" (").append(timeFrame).append(")\n");
+        message.append("• الرسالة: ").append(reminder.getMessage()).append("\n");
+        
+        if (reminder.getMileage() != null) {
+            message.append("• الكيلومترات المستهدفة: ").append(reminder.getMileage()).append("\n");
+        }
+        
+        if (reminder.getPriority() != null) {
+            message.append("• الأولوية: ").append(getPriorityInArabic(reminder.getPriority())).append("\n");
+        }
+        
+        if (reminder.getCategory() != null) {
+            message.append("• الفئة: ").append(reminder.getCategory()).append("\n");
+        }
+        
+        message.append("\nيرجى مراجعة جدول الصيانة والاستعداد للصيانة المطلوبة.");
+        
+        return message.toString();
+    }
+    
+    /**
+     * Get reminder type in Arabic
+     */
+    private String getReminderTypeInArabic(String type) {
+        switch (type) {
+            case "maintenance":
+                return "صيانة";
+            case "license_expiry":
+                return "انتهاء الرخصة";
+            case "insurance_expiry":
+                return "انتهاء التأمين";
+            case "registration_expiry":
+                return "انتهاء التسجيل";
+            default:
+                return type;
+        }
+    }
+    
+    /**
+     * Get priority in Arabic
+     */
+    private String getPriorityInArabic(String priority) {
+        switch (priority.toLowerCase()) {
+            case "high":
+                return "عالي";
+            case "medium":
+                return "متوسط";
+            case "low":
+                return "منخفض";
+            default:
+                return priority;
+        }
     }
 
 }
