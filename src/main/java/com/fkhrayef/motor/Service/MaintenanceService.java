@@ -5,6 +5,7 @@ import com.fkhrayef.motor.Api.ApiException;
 import com.fkhrayef.motor.DTOin.MaintenanceDTO;
 import com.fkhrayef.motor.Model.Car;
 import com.fkhrayef.motor.Model.Maintenance;
+import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.CarRepository;
 import com.fkhrayef.motor.Repository.MaintenanceRepository;
 import lombok.AllArgsConstructor;
@@ -66,6 +67,15 @@ public class MaintenanceService {
             throw new ApiException("Maintenance not found !");
         }
         maintenanceRepository.delete(maintenance);
+    }
+
+    public List<Maintenance> getMaintenancesByCarId(Integer carId){
+        Car car = carRepository.findCarById(carId);
+
+        if (car == null){
+            throw new ApiException("Car not found");
+        }
+        return maintenanceRepository.findMaintenancesByCarId(car.getId());
     }
 
 }

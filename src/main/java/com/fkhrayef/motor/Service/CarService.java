@@ -70,4 +70,14 @@ public class CarService {
 
         carRepository.delete(car);
     }
+
+    public List<Car> getCarsByUserId(Integer userId){
+        User user = userRepository.findUserById(userId);
+
+        if (user == null){
+            throw new ApiException("User not found");
+        }
+
+        return carRepository.findCarsByUserId(user.getId());
+    }
 }

@@ -20,7 +20,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Check(constraints = "mileage >= 0")
-@Check(constraints = "year > 0")
+@Check(constraints = "make IN ('Toyota','Honda','Ford') AND year >= 1990 AND year <= 2030")
 public class Car {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
