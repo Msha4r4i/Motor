@@ -54,6 +54,10 @@ public class CarService {
             throw new ApiException("Car not found with id: " + carId);
         }
 
+        // Validate file presence
+        if (file == null || file.isEmpty()) {
+            throw new ApiException("Registration file is required");
+        }
         // Validate file type
         String fileName = file.getOriginalFilename();
         if (fileName == null || !fileName.toLowerCase().endsWith(".pdf")) {

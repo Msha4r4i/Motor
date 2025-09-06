@@ -40,7 +40,7 @@ public class Maintenance {
     private String notes;
 
     // Invoice (optional - can be added later via upload endpoint)
-    @Column(columnDefinition = "VARCHAR(255)")
+    @Column(columnDefinition = "VARCHAR(4096)")
     private String invoiceFileUrl;
 
     @Column(columnDefinition = "DOUBLE")

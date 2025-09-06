@@ -91,6 +91,10 @@ public class MaintenanceService {
             throw new ApiException("Maintenance not found with id: " + maintenanceId);
         }
 
+        // Validate file presence
+        if (file == null || file.isEmpty()) {
+            throw new ApiException("Invoice file is required");
+        }
         // Validate file type
         String fileName = file.getOriginalFilename();
         if (fileName == null || !fileName.toLowerCase().endsWith(".pdf")) {

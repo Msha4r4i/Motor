@@ -79,30 +79,20 @@ public class CarController {
 
     @GetMapping("/download-registration/{id}")
     public ResponseEntity<?> downloadRegistration(@PathVariable Integer id) {
-        try {
-            byte[] registrationData = carService.downloadRegistration(id);
-            String filename = String.format("car-%d-registration.pdf", id);
-            
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .body(registrationData);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(e.getMessage()));
-        }
+        byte[] registrationData = carService.downloadRegistration(id);
+        String filename = String.format("car-%d-registration.pdf", id);
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(registrationData);
     }
 
     @DeleteMapping("/delete-registration/{id}")
     public ResponseEntity<?> deleteRegistration(@PathVariable Integer id) {
-        try {
-            carService.deleteRegistration(id);
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ApiResponse("Registration deleted successfully"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(e.getMessage()));
-        }
+        carService.deleteRegistration(id);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse("Registration deleted successfully"));
     }
 
     // Insurance file management endpoints
@@ -135,30 +125,20 @@ public class CarController {
 
     @GetMapping("/download-insurance/{id}")
     public ResponseEntity<?> downloadInsurance(@PathVariable Integer id) {
-        try {
-            byte[] insuranceData = carService.downloadInsurance(id);
-            String filename = String.format("car-%d-insurance.pdf", id);
-            
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .body(insuranceData);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(e.getMessage()));
-        }
+        byte[] insuranceData = carService.downloadInsurance(id);
+        String filename = String.format("car-%d-insurance.pdf", id);
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(insuranceData);
     }
 
     @DeleteMapping("/delete-insurance/{id}")
     public ResponseEntity<?> deleteInsurance(@PathVariable Integer id) {
-        try {
-            carService.deleteInsurance(id);
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ApiResponse("Insurance deleted successfully"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(e.getMessage()));
-        }
+        carService.deleteInsurance(id);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse("Insurance deleted successfully"));
     }
 
 }

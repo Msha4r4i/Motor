@@ -41,7 +41,7 @@ public class User {
     private String role;
 
     // License Information (Optional)
-    @Column(columnDefinition = "VARCHAR(255)")
+    @Column(columnDefinition = "VARCHAR(4096)")
     private String licenseFileUrl;
     @Column(columnDefinition = "DATE")
     private LocalDate licenseExpiry;

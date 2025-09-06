@@ -77,37 +77,27 @@ public class MaintenanceController {
 
     @GetMapping("/download-invoice/{id}")
     public ResponseEntity<?> downloadInvoice(@PathVariable Integer id) {
-        try {
-            byte[] invoiceData = maintenanceService.downloadInvoice(id);
-            
-            // Get maintenance details to include service type in filename
-            Maintenance maintenance = maintenanceService.getMaintenanceById(id);
-            String serviceType = maintenance.getServiceType();
-            
-            // Clean service type for filename (remove special characters)
-            String cleanServiceType = serviceType.replaceAll("[^a-zA-Z0-9\\s-]", "").replaceAll("\\s+", "-");
-            String filename = String.format("%s-invoice-%d.pdf", cleanServiceType, id);
-            
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .body(invoiceData);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(e.getMessage()));
-        }
+        byte[] invoiceData = maintenanceService.downloadInvoice(id);
+        
+        // Get maintenance details to include service type in filename
+        Maintenance maintenance = maintenanceService.getMaintenanceById(id);
+        String serviceType = maintenance.getServiceType();
+        
+        // Clean service type for filename (remove special characters)
+        String cleanServiceType = serviceType.replaceAll("[^a-zA-Z0-9\\s-]", "").replaceAll("\\s+", "-");
+        String filename = String.format("%s-invoice-%d.pdf", cleanServiceType, id);
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(invoiceData);
     }
 
     @DeleteMapping("/delete-invoice/{id}")
     public ResponseEntity<?> deleteInvoice(@PathVariable Integer id) {
-        try {
-            maintenanceService.deleteInvoice(id);
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ApiResponse("Invoice deleted successfully"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(e.getMessage()));
-        }
+        maintenanceService.deleteInvoice(id);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse("Invoice deleted successfully"));
     }
 
 }

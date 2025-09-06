@@ -76,32 +76,21 @@ public class UserController {
 
     @GetMapping("/download-license/{id}")
     public ResponseEntity<?> downloadLicense(@PathVariable Integer id) {
-        try {
-            byte[] licenseData = userService.downloadLicense(id);
-            
-            // Generate filename for download
-            String filename = String.format("user-%d-license.pdf", id);
-            
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .body(licenseData);
-                    
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(e.getMessage()));
-        }
+        byte[] licenseData = userService.downloadLicense(id);
+        
+        // Generate filename for download
+        String filename = String.format("user-%d-license.pdf", id);
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(licenseData);
     }
 
     @DeleteMapping("/delete-license/{id}")
     public ResponseEntity<?> deleteLicense(@PathVariable Integer id) {
-        try {
-            userService.deleteLicense(id);
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ApiResponse("License deleted successfully"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(e.getMessage()));
-        }
+        userService.deleteLicense(id);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse("License deleted successfully"));
     }
 }

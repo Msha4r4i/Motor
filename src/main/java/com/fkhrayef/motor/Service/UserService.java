@@ -44,6 +44,10 @@ public class UserService {
             throw new ApiException("User not found with id: " + userId);
         }
 
+        // Validate file presence
+        if (file == null || file.isEmpty()) {
+            throw new ApiException("License file is required");
+        }
         // Validate file type
         String fileName = file.getOriginalFilename();
         if (fileName == null || !fileName.toLowerCase().endsWith(".pdf")) {
