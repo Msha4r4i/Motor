@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Check(constraints = "type IN ('license_expiry','insurance_expiry','registration_expiry','maintenance')")
+@Check(constraints = "mileage >= 0")
 public class Reminder {
 
     @Id
@@ -38,6 +39,16 @@ public class Reminder {
 
     @Column(columnDefinition = "boolean not null")
     private Boolean isSent;
+
+    // Additional fields for maintenance reminders
+    @Column(columnDefinition = "INT")
+    private Integer mileage;
+
+    @Column(columnDefinition = "VARCHAR(50)")
+    private String priority;
+
+    @Column(columnDefinition = "VARCHAR(100)")
+    private String category;
 
     // Relations
     @ManyToOne

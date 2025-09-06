@@ -44,4 +44,10 @@ public class ReminderController {
         return ResponseEntity.status(HttpStatus.OK).body(reminderService.getRemindersByCarId(carId));
     }
 
+    @PostMapping("/generate-maintenance/{carId}")
+    public ResponseEntity<?> generateMaintenanceReminders(@PathVariable Integer carId) {
+        reminderService.generateAndSaveMaintenanceReminders(carId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("Maintenance reminders generated successfully"));
+    }
+
 }
