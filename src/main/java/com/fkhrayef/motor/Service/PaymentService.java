@@ -238,9 +238,6 @@ public class PaymentService {
     /**
      * Create subscription from completed payment
      */
-    /**
-     * Create subscription from completed payment
-     */
     private void createSubscriptionFromPayment(Payment payment) {
         try {
             // Parse plan details from payment description
