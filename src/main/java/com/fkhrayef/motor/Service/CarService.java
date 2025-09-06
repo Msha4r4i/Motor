@@ -287,4 +287,18 @@ public class CarService {
             throw new ApiException("Model " + model + " does not belong to " + make);
         }
     }
+
+    public void updateMileage(Integer userId, Integer carId, Integer newMileage) {
+        Car car = carRepository.findCarByIdAndUserId(carId, userId);
+        if (car == null) {
+            throw new ApiException("Car not found or does not belong to this user");
+        }
+
+        if (newMileage < car.getMileage()) {
+            throw new ApiException("New mileage cannot be less than current mileage (" + car.getMileage() + ")");
+        }
+
+        car.setMileage(newMileage);
+        carRepository.save(car);
+    }
 }
