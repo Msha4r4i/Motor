@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/transfer-requests")
+@RequestMapping("/api/v1/transfer-requests")
 @RequiredArgsConstructor
 public class CarTransferRequestController {
 
