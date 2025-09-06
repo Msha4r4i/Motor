@@ -117,6 +117,25 @@ public class S3Service {
         return generateS3Url(key);
     }
 
+    // upload maintenance invoice file with unique naming using maintenance ID and car info
+    public String uploadMaintenanceInvoiceFile(MultipartFile file, String maintenanceId, String carMake, String carModel) throws IOException {
+        // Generate unique filename: maintenance-{maintenanceId}-{carMake}-{carModel}-invoice.pdf
+        String fileName = String.format("maintenance-%s-%s-%s-invoice.pdf", 
+                maintenanceId, 
+                carMake.toLowerCase().replace(" ", "-"), 
+                carModel.toLowerCase().replace(" ", "-"));
+        String key = "maintenance-invoices/" + fileName;
+        
+        s3Client.putObject(PutObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .contentType(file.getContentType())
+                        .build(),
+                RequestBody.fromBytes(file.getBytes()));
+        
+        return generateS3Url(key);
+    }
+
     // delete file from S3
     public void deleteFile(String key) {
         s3Client.deleteObject(DeleteObjectRequest.builder()
