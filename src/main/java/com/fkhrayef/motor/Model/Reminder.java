@@ -40,13 +40,13 @@ public class Reminder {
     private Boolean isSent;
 
     // Additional fields for maintenance reminders
-    @Column(name = "mileage")
+    @Column(columnDefinition = "INT")
     private Integer mileage;
 
-    @Column(name = "priority")
+    @Column(columnDefinition = "VARCHAR(50)")
     private String priority;
 
-    @Column(name = "category")
+    @Column(columnDefinition = "VARCHAR(100)")
     private String category;
 
     // Relations
