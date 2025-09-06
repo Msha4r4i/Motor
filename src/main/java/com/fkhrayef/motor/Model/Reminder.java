@@ -39,6 +39,16 @@ public class Reminder {
     @Column(columnDefinition = "boolean not null")
     private Boolean isSent;
 
+    // Additional fields for maintenance reminders
+    @Column(name = "mileage")
+    private Integer mileage;
+
+    @Column(name = "priority")
+    private String priority;
+
+    @Column(name = "category")
+    private String category;
+
     // Relations
     @ManyToOne
     @JsonIgnore

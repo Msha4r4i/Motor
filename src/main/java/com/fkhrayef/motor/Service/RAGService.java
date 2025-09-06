@@ -123,4 +123,35 @@ public class RAGService {
             return false;
         }
     }
+
+    public MaintenanceReminderResponseDTO generateMaintenanceReminders(Integer currentMileage, String documentName) {
+        try {
+            // Create the request body for the RAG API
+            Map<String, Object> requestBody = Map.of(
+                "document_name", documentName,
+                "current_mileage", currentMileage
+            );
+
+            MaintenanceReminderResponseDTO response = ragApiClient
+                    .post()
+                    .uri("/generate-maintenance-reminders")
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .map(body -> new ApiException("HTTP " + clientResponse.statusCode() + ": " + body)))
+                    .bodyToMono(MaintenanceReminderResponseDTO.class)
+                    .block();
+
+            return response != null ? response : new MaintenanceReminderResponseDTO();
+
+        } catch (Exception e) {
+            MaintenanceReminderResponseDTO errorResponse = new MaintenanceReminderResponseDTO();
+            errorResponse.setSuccess(false);
+            errorResponse.setError("RAG API Error: " + e.getMessage());
+            errorResponse.setDocumentName(documentName);
+            errorResponse.setCurrentMileage(currentMileage);
+            return errorResponse;
+        }
+    }
 }
