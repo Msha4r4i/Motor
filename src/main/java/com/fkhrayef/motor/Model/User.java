@@ -69,6 +69,12 @@ public class User {
     @PrimaryKeyJoinColumn
     private Subscription subscription;
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "fromUser")
+    private Set<CarTransferRequest> sentTransferRequests;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "toUser")
+    private Set<CarTransferRequest> receivedTransferRequests;
+
     // Timestamps
     @CreationTimestamp
     @Column(updatable = false)
