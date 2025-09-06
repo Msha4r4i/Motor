@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 
 import java.io.IOException;
 
@@ -60,6 +61,30 @@ public class S3Service {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    // upload license file with unique naming using user ID and phone
+    public String uploadLicenseFile(MultipartFile file, String userId, String phone) throws IOException {
+        // Generate unique filename: user-{userId}-{phone}-license.pdf
+        String fileName = String.format("user-%s-%s-license.pdf", userId, phone);
+        String key = "licenses/" + fileName;
+        
+        s3Client.putObject(PutObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .contentType(file.getContentType())
+                        .build(),
+                RequestBody.fromBytes(file.getBytes()));
+        
+        return generateS3Url(key);
+    }
+
+    // delete file from S3
+    public void deleteFile(String key) {
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build());
     }
 
     public byte[] downloadFile(String key) {
