@@ -63,7 +63,11 @@ public class User {
     private Set<Car> cars;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
-    private Set<Subscription> subscription;
+    private Set<Payment> payments;
+
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
+    @PrimaryKeyJoinColumn
+    private Subscription subscription;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "fromUser")
     private Set<CarTransferRequest> sentTransferRequests;
