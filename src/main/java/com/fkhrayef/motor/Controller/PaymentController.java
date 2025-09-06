@@ -55,7 +55,6 @@ public class PaymentController {
     @PostMapping("/webhook")
     public ResponseEntity<?> handleWebhook(@RequestBody String payload) {
         // Process the webhook payload (includes secret token validation)
-        System.out.println("====Moyasar Payload: " + payload);
         paymentService.handleWebhook(payload);
 
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse("Webhook processed successfully"));
