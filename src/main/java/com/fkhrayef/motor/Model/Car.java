@@ -63,6 +63,9 @@ public class Car {
     @Column(columnDefinition = "DATE")
     private LocalDate insuranceEndDate;
 
+    @Column(columnDefinition = "BOOLEAN NOT NULL DEFAULT TRUE")
+    private boolean accessible;
+
     // Relations
     @ManyToOne
     @JsonIgnore

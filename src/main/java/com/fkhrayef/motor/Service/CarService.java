@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,9 @@ public class CarService {
         car.setMileage(carDTO.getMileage());
         car.setVin(carDTO.getVin());
         car.setPurchaseDate(carDTO.getPurchaseDate());
+        car.setAccessible(true);
         car.setUser(user);
+
 
         carRepository.save(car);
     }
@@ -450,6 +453,29 @@ public class CarService {
                 if (existing >= 1) throw new ApiException("This plan allows only 1 car.");
         }
     }
+
+    public void enforceCarAccess(Integer userId) {
+        User u = userRepository.findById(userId).orElseThrow(() -> new ApiException("User not found"));
+        Subscription s = u.getSubscription();
+
+        boolean active = s != null
+                && "active".equalsIgnoreCase(s.getStatus())
+                && (s.getEndDate() == null || s.getEndDate().isAfter(LocalDateTime.now()));
+
+        int limit = Integer.MAX_VALUE;
+        if (!active) limit = 1;
+        else {
+            String plan = s.getPlanType() == null ? "" : s.getPlanType().toLowerCase();
+            if ("pro".equals(plan)) limit = 5;
+            else if ("enterprise".equals(plan)) limit = Integer.MAX_VALUE;
+            else limit = 1;
+        }
+
+        List<Car> cars = carRepository.findByUserIdOrderByCreatedAtAsc(userId);
+        for (int i = 0; i < cars.size(); i++) cars.get(i).setAccessible(i < limit);
+        carRepository.saveAll(cars);
+    }
+
 
 
 }

@@ -18,4 +18,6 @@ public interface CarRepository extends JpaRepository<Car, Integer> {
     List<Car> findByMakeAndModel(String make, String model);
 
     long countByUserId(Integer userId);
+
+    List<Car> findByUserIdOrderByCreatedAtAsc(Integer userId);
 }
