@@ -107,18 +107,15 @@ public class CarService {
             throw new ApiException("Car not found or does not belong to this user");
         }
 
-        if (!car.getUser().getId().equals(userId)) {
-            throw new ApiException("UNAUTHORIZED USER");
-        }
-
         ensureAccessible(car);
 
         if (newMileage == null) {
             throw new ApiException("New mileage is required");
         }
 
-        if (newMileage < car.getMileage()) {
-            throw new ApiException("New mileage cannot be less than current mileage (" + car.getMileage() + ")");
+        Integer current = car.getMileage();
+        if (current != null && newMileage < current) {
+            throw new ApiException("New mileage cannot be less than current mileage (" + current + ")");
         }
 
         car.setMileage(newMileage);
