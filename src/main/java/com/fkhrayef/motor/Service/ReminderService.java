@@ -42,6 +42,10 @@ public class ReminderService {
             throw new ApiException("Car not found");
         }
 
+        if (Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
+        }
+
         Reminder reminder = new Reminder();
 
         reminder.setType(reminderDTO.getType());
@@ -59,6 +63,11 @@ public class ReminderService {
             throw new ApiException("Reminder not found");
         }
 
+        Car car = reminder.getCar();
+        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
+        }
+
         reminder.setType(reminderDTO.getType());
         reminder.setDueDate(reminderDTO.getDueDate());
         reminder.setMessage(reminderDTO.getMessage());
@@ -69,6 +78,11 @@ public class ReminderService {
         Reminder reminder = reminderRepository.findReminderById(id);
         if (reminder == null) {
             throw new ApiException("Reminder not found");
+        }
+
+        Car car = reminder.getCar();
+        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
         }
         reminderRepository.delete(reminder);
     }
@@ -89,6 +103,10 @@ public class ReminderService {
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found");
+        }
+
+        if (Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
         }
 
         // Mileage is required by RAG and cannot be null (Map.of forbids nulls)

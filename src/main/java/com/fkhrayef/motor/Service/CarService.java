@@ -26,6 +26,11 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Slf4j
 public class CarService {
+    private void ensureAccessible(Car car) {
+        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
+        }
+    }
 
     private final CarRepository carRepository;
     private final UserRepository userRepository;
@@ -34,8 +39,6 @@ public class CarService {
     public List<Car> getAllCars() {
         return carRepository.findAll();
     }
-
-    // TODO: add endpoint to retrieve cars by user id!
 
     public void addCar(Integer userId, CarDTO carDTO) {
         User user = userRepository.findUserById(userId);
@@ -70,6 +73,8 @@ public class CarService {
         if (car == null) {
             throw new ApiException("Car not found with id: " + carId);
         }
+
+        ensureAccessible(car);
 
         // Validate file presence
         if (file == null || file.isEmpty()) {
@@ -160,6 +165,8 @@ public class CarService {
             throw new ApiException("Car not found with id: " + carId);
         }
 
+        ensureAccessible(car);
+
         // Validate file type
         String fileName = file.getOriginalFilename();
         if (fileName == null || !fileName.toLowerCase().endsWith(".pdf")) {
@@ -242,6 +249,8 @@ public class CarService {
         if (car == null) {
             throw new ApiException("Car not found");
         }
+
+        ensureAccessible(car);
 
         validateCarMakeAndModel(carDTO);
 
