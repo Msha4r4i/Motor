@@ -2,6 +2,7 @@ package com.fkhrayef.motor.Controller;
 
 import com.fkhrayef.motor.Api.ApiResponse;
 import com.fkhrayef.motor.DTOin.UserDTO;
+import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,30 +30,32 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsers());
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<?> addUser(@Valid @RequestBody UserDTO userDTO ) {
-        userService.addUser(userDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("User added successfully"));
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@Valid @RequestBody UserDTO userDTO ) {
+        userService.register(userDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("User registered successfully"));
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Integer id, @Valid @RequestBody UserDTO userDTO ) {
-        userService.updateUser(id, userDTO);
+    public ResponseEntity<?> updateUser(@AuthenticationPrincipal User user, @PathVariable Integer id, @Valid @RequestBody UserDTO userDTO) {
+        userService.updateUser(user.getId(), id, userDTO);
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse("User updated successfully"));
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
-        userService.deleteUser(id);
+    public ResponseEntity<?> deleteUser(@AuthenticationPrincipal User user, @PathVariable Integer id) {
+        userService.deleteUser(user.getId(), id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PostMapping("/upload-license/{id}")
     public ResponseEntity<?> uploadLicense(
+            @AuthenticationPrincipal User user,
             @PathVariable Integer id,
             @RequestParam("file") MultipartFile file,
             @RequestParam("licenseExpiry") String licenseExpiry) {
 
+        // TODO: Move logic into service
         if (file == null || file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiResponse("License file is required"));
@@ -66,7 +70,7 @@ public class UserController {
             // Parse the expiry date
             LocalDate expiryDate = LocalDate.parse(licenseExpiry);
             
-            userService.uploadLicense(id, file, expiryDate);
+            userService.uploadLicense(user.getId(), id, file, expiryDate);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new ApiResponse("License uploaded successfully"));
             
@@ -77,8 +81,8 @@ public class UserController {
     }
 
     @GetMapping("/download-license/{id}")
-    public ResponseEntity<?> downloadLicense(@PathVariable Integer id) {
-        byte[] licenseData = userService.downloadLicense(id);
+    public ResponseEntity<?> downloadLicense(@AuthenticationPrincipal User user, @PathVariable Integer id) {
+        byte[] licenseData = userService.downloadLicense(user.getId(), id);
         
         // Generate filename for download
         String filename = String.format("user-%d-license.pdf", id);
@@ -90,15 +94,15 @@ public class UserController {
     }
 
     @DeleteMapping("/delete-license/{id}")
-    public ResponseEntity<?> deleteLicense(@PathVariable Integer id) {
-        userService.deleteLicense(id);
+    public ResponseEntity<?> deleteLicense(@AuthenticationPrincipal User user, @PathVariable Integer id) {
+        userService.deleteLicense(user.getId(), id);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse("License deleted successfully"));
     }
 
-    @GetMapping("/{userId}/subscription")
-    public ResponseEntity<Map<String, String>> getSubscription(@PathVariable Integer userId) {
-        String type = userService.getUserSubscriptionType(userId);
+    @GetMapping("/{id}/subscription")
+    public ResponseEntity<Map<String, String>> getSubscription(@AuthenticationPrincipal User user, @PathVariable Integer id) {
+        String type = userService.getUserSubscriptionType(user.getId(), id);
 
         Map<String, String> body = new HashMap<>();
         body.put("subscriptionType", type.isEmpty() ? "FREE" : type);
@@ -106,9 +110,9 @@ public class UserController {
         return ResponseEntity.ok(body);
     }
 
-    @DeleteMapping("/{userId}/card")
-    public ResponseEntity<String> deleteUserCard(@PathVariable Integer userId) {
-        userService.deleteUserCard(userId);
+    @DeleteMapping("/{id}/card")
+    public ResponseEntity<String> deleteUserCard(@AuthenticationPrincipal User user, @PathVariable Integer id) {
+        userService.deleteUserCard(user.getId(), id);
         return ResponseEntity.ok("Card deleted successfully");
     }
 }
