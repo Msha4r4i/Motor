@@ -172,6 +172,6 @@ public class UserService {
         user.setCardCvc(null);
         user.setCardExpMonth(null);
         user.setCardExpYear(null);
-
+        userRepository.save(user);
     }
 }
