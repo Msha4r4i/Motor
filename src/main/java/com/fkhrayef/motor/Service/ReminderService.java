@@ -328,10 +328,14 @@ public class ReminderService {
 
         List<Car> cars = carRepository.findAll();
         for (Car car : cars) {
-            if (car.getUser() == null) continue;
+            if (car.getUser() == null) {
+                continue;
+            }
 
             User user = car.getUser();
-            if (user.getPhone() == null || user.getPhone().isBlank()) continue;
+            if (user.getPhone() == null || user.getPhone().isBlank()){
+                continue;
+            }
 
             String message = buildMileageReminderMessage(car);
 

@@ -142,7 +142,7 @@ public class CarController {
                 .body(new ApiResponse("Insurance deleted successfully"));
     }
 
-    @PutMapping("/{userId}/cars/{carId}/mileage")
+    @PutMapping("/user/{userId}/car/{carId}/mileage")
     public ResponseEntity<?> updateMileage(@PathVariable Integer userId, @PathVariable Integer carId, @Valid @RequestBody CarMileageUpdateDTO dto) {
         carService.updateMileage(userId, carId, dto.getMileage());
         return ResponseEntity.ok(new ApiResponse("Mileage updated successfully"));

@@ -294,6 +294,10 @@ public class CarService {
             throw new ApiException("Car not found or does not belong to this user");
         }
 
+        if (newMileage == null) {
+            throw new ApiException("New mileage is required");
+        }
+
         if (newMileage < car.getMileage()) {
             throw new ApiException("New mileage cannot be less than current mileage (" + car.getMileage() + ")");
         }
