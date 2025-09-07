@@ -41,6 +41,11 @@ public class CarTransferRequestService {
     }
 
     public CarTransferResponseDTO directTransfer(Integer carId, Integer fromUserId, String toEmail, String toPhone) {
+        User user = userRepository.findUserById(fromUserId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         if (carId == null || fromUserId == null || toEmail == null || toPhone == null) {
             throw new ApiException("carId و fromUserId و toEmail و toPhone مطلوبة");
         }
@@ -85,7 +90,12 @@ public class CarTransferRequestService {
     }
 
 
-    public CarTransferResponseDTO accept(Integer requestId, Integer actingUserId){
+    public CarTransferResponseDTO accept(Integer requestId, Integer actingUserId) {
+        User user = userRepository.findUserById(actingUserId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         CarTransferRequest r = transferRepo.findCarTransferRequestById(requestId);
         if (r == null){
             throw new ApiException("طلب النقل غير موجود");
@@ -112,7 +122,12 @@ public class CarTransferRequestService {
         return toDto(r);
     }
 
-    public CarTransferResponseDTO cancel(Integer requestId , Integer actingUserId){
+    public CarTransferResponseDTO cancel(Integer requestId , Integer actingUserId) {
+        User user = userRepository.findUserById(actingUserId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         CarTransferRequest r = transferRepo.findCarTransferRequestById(requestId);
         if (r == null){
             throw new ApiException("طلب النقل غير موجود");
@@ -133,6 +148,11 @@ public class CarTransferRequestService {
     }
 
     public CarTransferResponseDTO reject(Integer requestId, Integer actingUserId) {
+        User user = userRepository.findUserById(actingUserId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         CarTransferRequest r = transferRepo.findCarTransferRequestById(requestId);
         if (r == null) throw new ApiException("طلب النقل غير موجود");
 
@@ -156,10 +176,20 @@ public class CarTransferRequestService {
     }
 
     public List<CarTransferResponseDTO> getIncoming(Integer toUserId){
+        User user = userRepository.findUserById(toUserId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         return transferRepo.findAllByToUser_Id(toUserId).stream().map(this::toDto).toList();
     }
 
     public List<CarTransferResponseDTO> getOutgoing(Integer fromUserId) {
+        User user = userRepository.findUserById(fromUserId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         return transferRepo.findAllByFromUser_Id(fromUserId).stream().map(this::toDto).toList();
     }
 
