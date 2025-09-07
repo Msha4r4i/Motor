@@ -3,7 +3,6 @@ package com.fkhrayef.motor.Service;
 import com.fkhrayef.motor.Api.ApiException;
 import com.fkhrayef.motor.DTOin.CarDTO;
 import com.fkhrayef.motor.Model.Car;
-import com.fkhrayef.motor.Model.Maintenance;
 import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.CarRepository;
 import com.fkhrayef.motor.Repository.UserRepository;
@@ -398,4 +397,22 @@ public class CarService {
 
 
 
+
+    public void updateMileage(Integer userId, Integer carId, Integer newMileage) {
+        Car car = carRepository.findCarByIdAndUserId(carId, userId);
+        if (car == null) {
+            throw new ApiException("Car not found or does not belong to this user");
+        }
+
+        if (newMileage == null) {
+            throw new ApiException("New mileage is required");
+        }
+
+        if (newMileage < car.getMileage()) {
+            throw new ApiException("New mileage cannot be less than current mileage (" + car.getMileage() + ")");
+        }
+
+        car.setMileage(newMileage);
+        carRepository.save(car);
+    }
 }
