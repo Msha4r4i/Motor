@@ -67,11 +67,20 @@ public class CarService {
     }
 
     // Registration file management
-    public void uploadRegistration(Integer carId, MultipartFile file, LocalDate registrationExpiry) {
+    public void uploadRegistration(Integer userId, Integer carId, MultipartFile file, LocalDate registrationExpiry) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         // Get car details from database
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found with id: " + carId);
+        }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         ensureAccessible(car);
@@ -110,11 +119,20 @@ public class CarService {
         carRepository.save(car);
     }
 
-    public byte[] downloadRegistration(Integer carId) {
+    public byte[] downloadRegistration(Integer userId, Integer carId) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         // Get car details from database
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found with id: " + carId);
+        }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         if (car.getRegistrationFileUrl() == null) {
@@ -129,11 +147,20 @@ public class CarService {
         return s3Service.downloadFile(key);
     }
 
-    public void deleteRegistration(Integer carId) {
+    public void deleteRegistration(Integer userId, Integer carId) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         // Get car details from database
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found with id: " + carId);
+        }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         if (car.getRegistrationFileUrl() == null) {
@@ -158,11 +185,20 @@ public class CarService {
     }
 
     // Insurance file management
-    public void uploadInsurance(Integer carId, MultipartFile file, LocalDate insuranceEndDate) {
+    public void uploadInsurance(Integer userId, Integer carId, MultipartFile file, LocalDate insuranceEndDate) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         // Get car details from database
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found with id: " + carId);
+        }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         ensureAccessible(car);
@@ -197,11 +233,20 @@ public class CarService {
         carRepository.save(car);
     }
 
-    public byte[] downloadInsurance(Integer carId) {
+    public byte[] downloadInsurance(Integer userId, Integer carId) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         // Get car details from database
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found with id: " + carId);
+        }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         if (car.getInsuranceFileUrl() == null) {
@@ -216,11 +261,20 @@ public class CarService {
         return s3Service.downloadFile(key);
     }
 
-    public void deleteInsurance(Integer carId) {
+    public void deleteInsurance(Integer userId, Integer carId) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         // Get car details from database
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found with id: " + carId);
+        }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         if (car.getInsuranceFileUrl() == null) {
@@ -244,10 +298,19 @@ public class CarService {
         carRepository.save(car);
     }
 
-    public void updateCar(Integer id, CarDTO carDTO) {
+    public void updateCar(Integer userId, Integer id, CarDTO carDTO) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         Car car = carRepository.findCarById(id);
         if (car == null) {
             throw new ApiException("Car not found");
+        }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         ensureAccessible(car);
@@ -265,10 +328,46 @@ public class CarService {
         carRepository.save(car);
     }
 
-    public void deleteCar(Integer id) {
+    public void updateMileage(Integer userId, Integer carId, Integer newMileage) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
+        Car car = carRepository.findCarByIdAndUserId(carId, userId);
+        if (car == null) {
+            throw new ApiException("Car not found or does not belong to this user");
+        }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
+        }
+
+        if (newMileage == null) {
+            throw new ApiException("New mileage is required");
+        }
+
+        if (newMileage < car.getMileage()) {
+            throw new ApiException("New mileage cannot be less than current mileage (" + car.getMileage() + ")");
+        }
+
+        car.setMileage(newMileage);
+        carRepository.save(car);
+    }
+
+    public void deleteCar(Integer userId, Integer id) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         Car car = carRepository.findCarById(id);
         if (car == null) {
             throw new ApiException("Car not found");
+        }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         carRepository.delete(car);
@@ -311,7 +410,11 @@ public class CarService {
         }
     }
 
-    public String getMaintenanceCostOneYear(String make, String model, Integer minMileage, Integer maxMileage) {
+    public String getMaintenanceCostOneYear(Integer userId, String make, String model, Integer minMileage, Integer maxMileage) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
 
         if (!MAKE_MODELS.containsKey(make) || !MAKE_MODELS.get(make).contains(model)) {
             throw new ApiException("Unsupported make/model");
@@ -348,7 +451,12 @@ public class CarService {
         return String.format("Maintenance cost in last year: %.2f SAR (based on %d cars)", avg, count);
     }
 
-    public String getVisitFrequency(String make, String model, Integer minAge, Integer maxAge) {
+    public String getVisitFrequency(Integer userId, String make, String model, Integer minAge, Integer maxAge) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         if (!MAKE_MODELS.containsKey(make) || !MAKE_MODELS.get(make).contains(model)) {
             throw new ApiException("Unsupported make/model");
         }
@@ -390,7 +498,12 @@ public class CarService {
         return String.format("On average, cars are serviced once every ~%.0f years (based on %d cars)", yearsBetween, count);
     }
 
-    public String getTypicalMileagePerYear(String make, String model, String city) {
+    public String getTypicalMileagePerYear(Integer userId, String make, String model, String city) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         if (!MAKE_MODELS.containsKey(make) || !MAKE_MODELS.get(make).contains(model)) {
             throw new ApiException("Unsupported make/model");
         }
@@ -421,23 +534,6 @@ public class CarService {
     }
 
 
-    public void updateMileage(Integer userId, Integer carId, Integer newMileage) {
-        Car car = carRepository.findCarByIdAndUserId(carId, userId);
-        if (car == null) {
-            throw new ApiException("Car not found or does not belong to this user");
-        }
-
-        if (newMileage == null) {
-            throw new ApiException("New mileage is required");
-        }
-
-        if (newMileage < car.getMileage()) {
-            throw new ApiException("New mileage cannot be less than current mileage (" + car.getMileage() + ")");
-        }
-
-        car.setMileage(newMileage);
-        carRepository.save(car);
-    }
 
     public long getCarsNumbers(Integer userId){
         return carRepository.countByUserId(userId);
