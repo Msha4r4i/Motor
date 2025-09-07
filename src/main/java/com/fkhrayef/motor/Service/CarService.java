@@ -3,6 +3,7 @@ package com.fkhrayef.motor.Service;
 import com.fkhrayef.motor.Api.ApiException;
 import com.fkhrayef.motor.DTOin.CarDTO;
 import com.fkhrayef.motor.Model.Car;
+import com.fkhrayef.motor.Model.Maintenance;
 import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.CarRepository;
 import com.fkhrayef.motor.Repository.UserRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -287,4 +289,113 @@ public class CarService {
             throw new ApiException("Model " + model + " does not belong to " + make);
         }
     }
+
+    public String getMaintenanceCostOneYear(String make, String model, Integer minMileage, Integer maxMileage) {
+
+        if (!MAKE_MODELS.containsKey(make) || !MAKE_MODELS.get(make).contains(model)) {
+            throw new ApiException("Unsupported make/model");
+        }
+
+        LocalDate oneYearAgo = LocalDate.now().minusYears(1);
+
+        List<Car> cars = carRepository.findAll().stream()
+                .filter(c -> make.equals(c.getMake()) && model.equals(c.getModel()))
+                .filter(c -> minMileage == null || (c.getMileage() != null && c.getMileage() >= minMileage))
+                .filter(c -> maxMileage == null || (c.getMileage() != null && c.getMileage() <= maxMileage))
+                .toList();
+
+        List<Double> costs = new ArrayList<>();
+        for (Car c : cars) {
+            double spend = c.getMaintenances() == null ? 0.0 :
+                    c.getMaintenances().stream()
+                            .filter(m -> "MAINTENANCE".equalsIgnoreCase(m.getRecordType()))
+                            .filter(m -> m.getServiceDate() != null && !m.getServiceDate().isBefore(oneYearAgo))
+                            .mapToDouble(m -> m.getInvoiceAmount() == null ? 0.0 : m.getInvoiceAmount())
+                            .sum();
+            costs.add(spend);
+        }
+
+        if (costs.isEmpty()) return "Maintenance cost in last year: 0 SAR (0 cars)";
+
+        double avg = costs.stream().mapToDouble(d -> d).average().orElse(0.0);
+        long count = costs.size();
+
+        return String.format("Maintenance cost in last year: %.2f SAR (based on %d cars)", avg, count);
+    }
+
+    public String getVisitFrequency(String make, String model, Integer minAge, Integer maxAge) {
+        if (!MAKE_MODELS.containsKey(make) || !MAKE_MODELS.get(make).contains(model)) {
+            throw new ApiException("Unsupported make/model");
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDate oneYearAgo = today.minusYears(1);
+
+        List<Car> cars = carRepository.findAll().stream()
+                .filter(c -> make.equals(c.getMake()) && model.equals(c.getModel()))
+                .filter(c -> {
+                    if (c.getPurchaseDate() == null) return true;
+                    int age = today.getYear() - c.getPurchaseDate().getYear();
+                    return (minAge == null || age >= minAge) && (maxAge == null || age <= maxAge);
+                })
+                .toList();
+
+        List<Long> yearlyVisits = new ArrayList<>();
+        for (Car c : cars) {
+            if (c.getMaintenances() == null) continue;
+
+            long visits = c.getMaintenances().stream()
+                    .filter(m -> "MAINTENANCE".equalsIgnoreCase(m.getRecordType()))
+                    .filter(m -> m.getServiceDate() != null && !m.getServiceDate().isBefore(oneYearAgo))
+                    .count();
+
+            yearlyVisits.add(visits);
+        }
+
+        if (yearlyVisits.isEmpty()) return "No data for this car";
+
+        double avg = yearlyVisits.stream().mapToLong(v -> v).average().orElse(0);
+        long count = yearlyVisits.size();
+
+        if (avg == 0) {
+            return String.format("On average, cars had no maintenance visits in the last year (based on %d cars)", count);
+        }
+
+        double yearsBetween = 1 / avg;
+        return String.format("On average, cars are serviced once every ~%.0f years (based on %d cars)", yearsBetween, count);
+    }
+
+    public String getTypicalMileagePerYear(String make, String model, String city) {
+        if (!MAKE_MODELS.containsKey(make) || !MAKE_MODELS.get(make).contains(model)) {
+            throw new ApiException("Unsupported make/model");
+        }
+
+        LocalDate today = LocalDate.now();
+
+        List<Car> cars = carRepository.findAll().stream()
+                .filter(c -> make.equals(c.getMake()) && model.equals(c.getModel()))
+                .filter(c -> city == null ||
+                        (c.getUser() != null && city.equalsIgnoreCase(c.getUser().getCity())))
+                .toList();
+
+        List<Double> mileagePerYear = new ArrayList<>();
+        for (Car c : cars) {
+            if (c.getMileage() == null || c.getPurchaseDate() == null) continue;
+
+            long daysOwned = java.time.temporal.ChronoUnit.DAYS.between(c.getPurchaseDate(), today);
+            double yearsOwned = Math.max(1.0, daysOwned / 365.25);
+
+            mileagePerYear.add(c.getMileage() / yearsOwned);
+        }
+
+        if (mileagePerYear.isEmpty()) return "No mileage data for this car";
+
+        double avg = mileagePerYear.stream().mapToDouble(d -> d).average().orElse(0);
+        long count = mileagePerYear.size();
+
+        return String.format("Typical mileage per year: %.0f km (based on %d cars)", avg, count);
+    }
+
+
+
 }

@@ -1,5 +1,6 @@
 package com.fkhrayef.motor.DTOin;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -26,4 +27,7 @@ public class UserDTO {
 
     @NotEmpty(message = "Password cannot be null")
     private String password;
+
+    @NotEmpty(message = "City cannot be null")
+    private String city;
 }

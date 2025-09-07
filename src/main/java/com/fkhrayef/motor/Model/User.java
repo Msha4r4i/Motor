@@ -37,6 +37,9 @@ public class User {
     @Column(columnDefinition = "VARCHAR(255) NOT NULL")
     private String password;
 
+    @Column(columnDefinition = "VARCHAR(255) NOT NULL")
+    private String city;
+
     @Pattern(regexp = "^(ADMIN|USER)$", message = "Role must be either 'ADMIN' or 'USER'")
     private String role;
 
