@@ -133,8 +133,8 @@ public class MaintenanceService {
         // Upload to S3 with unique naming
         String s3Url;
         try {
-            Car carOfMaintenance = maintenance.getCar();
-            s3Url = s3Service.uploadMaintenanceInvoiceFile(file, maintenanceId.toString(), carOfMaintenance.getMake(), carOfMaintenance.getModel());
+            if (car == null) throw new ApiException("Maintenance is not linked to a car"); // never happens but for IDE to stop warning
+            s3Url = s3Service.uploadMaintenanceInvoiceFile(file, maintenanceId.toString(), car.getMake(), car.getModel());
         } catch (Exception e) {
             throw new ApiException("Failed to upload invoice file: " + e.getMessage());
         }
