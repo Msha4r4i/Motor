@@ -43,7 +43,7 @@ public class CarService {
     public void addCar(Integer userId, CarDTO carDTO) {
         User user = userRepository.findUserById(userId);
         if (user == null) {
-            throw new ApiException("User not found");
+            throw new ApiException("UNAUTHENTICATED USER");
         }
 
         // enforce subscription rules
@@ -145,9 +145,8 @@ public class CarService {
 
     public List<Car> getCarsByUserId(Integer userId){
         User user = userRepository.findUserById(userId);
-
         if (user == null){
-            throw new ApiException("User not found");
+            throw new ApiException("UNAUTHENTICATED USER");
         }
 
         return carRepository.findCarsByUserId(user.getId());
