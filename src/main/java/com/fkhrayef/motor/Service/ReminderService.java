@@ -318,4 +318,48 @@ public class ReminderService {
         }
     }
 
+    /**
+     * Scheduled job: every Monday 9:00 AM send WhatsApp reminder
+     * to update car mileage
+     */
+    @Scheduled(cron = "0 0 9 * * MON") // كل يوم اثنين الساعة 9 صباحاً
+    public void sendWeeklyMileageReminders() {
+        logger.info("[Scheduler] Starting weekly mileage reminders...");
+
+        List<Car> cars = carRepository.findAll();
+        for (Car car : cars) {
+            if (car.getUser() == null) {
+                continue;
+            }
+
+            User user = car.getUser();
+            if (user.getPhone() == null || user.getPhone().isBlank()){
+                continue;
+            }
+
+            String message = buildMileageReminderMessage(car);
+
+            try {
+                whatsappService.sendWhatsAppMessage(message, user.getPhone());
+                logger.info("[Scheduler] Weekly mileage reminder sent to user {} for car {}",
+                        user.getId(), car.getId());
+            } catch (Exception e) {
+                logger.error("[Scheduler] Failed to send weekly mileage reminder to user {}: {}",
+                        user.getId(), e.getMessage());
+            }
+        }
+    }
+
+    private String buildMileageReminderMessage(Car car) {
+        StringBuilder msg = new StringBuilder();
+        msg.append("🚗 تذكير أسبوعي لتحديث عداد السيارة\n\n");
+        msg.append("📋 تفاصيل السيارة:\n");
+        msg.append("• الماركة: ").append(car.getMake()).append("\n");
+        msg.append("• الموديل: ").append(car.getModel()).append("\n");
+        msg.append("• السنة: ").append(car.getYear()).append("\n\n");
+        msg.append("🔢 العداد الحالي المسجل: ").append(car.getMileage() != null ? car.getMileage() : "غير مسجل").append("\n\n");
+        msg.append("💡 يرجى إدخال القراءة الجديدة للعداد عبر التطبيق للحفاظ على سجل الصيانة محدثاً.");
+        return msg.toString();
+    }
+
 }

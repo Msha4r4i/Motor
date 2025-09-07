@@ -2,6 +2,7 @@ package com.fkhrayef.motor.Controller;
 
 import com.fkhrayef.motor.Api.ApiResponse;
 import com.fkhrayef.motor.DTOin.CarDTO;
+import com.fkhrayef.motor.DTOin.CarMileageUpdateDTO;
 import com.fkhrayef.motor.Service.CarService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -139,6 +140,12 @@ public class CarController {
         carService.deleteInsurance(id);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse("Insurance deleted successfully"));
+    }
+
+    @PutMapping("/user/{userId}/car/{carId}/mileage")
+    public ResponseEntity<?> updateMileage(@PathVariable Integer userId, @PathVariable Integer carId, @Valid @RequestBody CarMileageUpdateDTO dto) {
+        carService.updateMileage(userId, carId, dto.getMileage());
+        return ResponseEntity.ok(new ApiResponse("Mileage updated successfully"));
     }
 
 }
