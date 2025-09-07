@@ -31,6 +31,10 @@ public class MaintenanceService {
             throw new ApiException("Car not found !");
         }
 
+        if (Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
+        }
+
         Maintenance maintenance = new Maintenance();
 
         maintenance.setRecordType(maintenanceDTO.getRecordType());
@@ -49,6 +53,11 @@ public class MaintenanceService {
         if (maintenance == null){
             throw new ApiException("Maintenance not found !");
         }
+
+        Car car = maintenance.getCar();
+        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
+        }
         maintenance.setRecordType(maintenanceDTO.getRecordType());
         maintenance.setServiceType(maintenanceDTO.getServiceType());
         maintenance.setServiceDate(maintenanceDTO.getServiceDate());
@@ -62,6 +71,11 @@ public class MaintenanceService {
         Maintenance maintenance = maintenanceRepository.findMaintenanceById(id);
         if (maintenance == null){
             throw new ApiException("Maintenance not found !");
+        }
+
+        Car car = maintenance.getCar();
+        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
         }
         maintenanceRepository.delete(maintenance);
     }
@@ -91,6 +105,11 @@ public class MaintenanceService {
             throw new ApiException("Maintenance not found with id: " + maintenanceId);
         }
 
+        Car car = maintenance.getCar();
+        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
+        }
+
         // Validate file presence
         if (file == null || file.isEmpty()) {
             throw new ApiException("Invoice file is required");
@@ -114,7 +133,7 @@ public class MaintenanceService {
         // Upload to S3 with unique naming
         String s3Url;
         try {
-            Car car = maintenance.getCar();
+            if (car == null) throw new ApiException("Maintenance is not linked to a car"); // never happens but for IDE to stop warning
             s3Url = s3Service.uploadMaintenanceInvoiceFile(file, maintenanceId.toString(), car.getMake(), car.getModel());
         } catch (Exception e) {
             throw new ApiException("Failed to upload invoice file: " + e.getMessage());
@@ -150,6 +169,11 @@ public class MaintenanceService {
         Maintenance maintenance = maintenanceRepository.findMaintenanceById(maintenanceId);
         if (maintenance == null) {
             throw new ApiException("Maintenance not found with id: " + maintenanceId);
+        }
+
+        Car car = maintenance.getCar();
+        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
         }
 
         if (maintenance.getInvoiceFileUrl() == null) {

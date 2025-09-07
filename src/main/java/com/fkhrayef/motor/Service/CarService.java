@@ -8,11 +8,15 @@ import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.CarRepository;
 import com.fkhrayef.motor.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.query.ReturnableType;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +24,13 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CarService {
+    private void ensureAccessible(Car car) {
+        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
+        }
+    }
 
     private final CarRepository carRepository;
     private final UserRepository userRepository;
@@ -29,8 +39,6 @@ public class CarService {
     public List<Car> getAllCars() {
         return carRepository.findAll();
     }
-
-    // TODO: add endpoint to retrieve cars by user id!
 
     public void addCar(Integer userId, CarDTO carDTO) {
         User user = userRepository.findUserById(userId);
@@ -51,7 +59,9 @@ public class CarService {
         car.setMileage(carDTO.getMileage());
         car.setVin(carDTO.getVin());
         car.setPurchaseDate(carDTO.getPurchaseDate());
+        car.setIsAccessible(true);
         car.setUser(user);
+
 
         carRepository.save(car);
     }
@@ -63,6 +73,8 @@ public class CarService {
         if (car == null) {
             throw new ApiException("Car not found with id: " + carId);
         }
+
+        ensureAccessible(car);
 
         // Validate file presence
         if (file == null || file.isEmpty()) {
@@ -153,6 +165,8 @@ public class CarService {
             throw new ApiException("Car not found with id: " + carId);
         }
 
+        ensureAccessible(car);
+
         // Validate file type
         String fileName = file.getOriginalFilename();
         if (fileName == null || !fileName.toLowerCase().endsWith(".pdf")) {
@@ -235,6 +249,8 @@ public class CarService {
         if (car == null) {
             throw new ApiException("Car not found");
         }
+
+        ensureAccessible(car);
 
         validateCarMakeAndModel(carDTO);
 
@@ -450,6 +466,47 @@ public class CarService {
                 if (existing >= 1) throw new ApiException("This plan allows only 1 car.");
         }
     }
+
+    public void enforceCarAccess(Integer userId) {
+        User u = userRepository.findById(userId).orElseThrow(() -> new ApiException("User not found"));
+        Subscription s = u.getSubscription();
+
+        boolean active = s != null
+                && "active".equalsIgnoreCase(s.getStatus())
+                && (s.getEndDate() == null || s.getEndDate().isAfter(LocalDateTime.now()));
+
+        int limit = Integer.MAX_VALUE;
+        if (!active) limit = 1;
+        else {
+            String plan = s.getPlanType() == null ? "" : s.getPlanType().toLowerCase();
+            if ("pro".equals(plan)) limit = 5;
+            else if ("enterprise".equals(plan)) limit = Integer.MAX_VALUE;
+            else limit = 1;
+        }
+
+        List<Car> cars = carRepository.findByUserIdOrderByCreatedAtAsc(userId);
+        for (int i = 0; i < cars.size(); i++) cars.get(i).setIsAccessible(i < limit);
+        carRepository.saveAll(cars);
+    }
+
+
+    //  @Scheduled(cron = "0 0 2 * * ?", zone = "Asia/Riyadh")
+    @Scheduled(cron = "0 * * * * *") // Every minute (for testing)
+    public void enforceAllUsersAccessPaged() {
+        log.info("[Scheduler] Starting enforceAllUsersAccessPaged...");
+        int page = 0;
+        Page<User> slice;
+        do {
+            slice = userRepository.findAll(PageRequest.of(page, 500));
+            log.info("[Scheduler] Enforcing access for {} users (page {})", slice.getNumberOfElements(), page);
+            for (User u : slice) {
+                enforceCarAccess(u.getId());
+            }
+            page++;
+        } while (slice.hasNext());
+        log.info("[Scheduler] Completed enforceAllUsersAccessPaged.");
+    }
+
 
 
 }

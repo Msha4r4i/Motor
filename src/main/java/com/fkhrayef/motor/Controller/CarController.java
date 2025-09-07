@@ -185,5 +185,10 @@ public class CarController {
         return ResponseEntity.status(HttpStatus.OK).body(carService.getCarsNumbers(userId));
     }
 
+    @PutMapping("/{userId}/enforce-access")
+    public ResponseEntity<Void> enforceAccess(@PathVariable Integer userId) {
+        carService.enforceCarAccess(userId);
+        return ResponseEntity.ok().build();
+    }
 
 }

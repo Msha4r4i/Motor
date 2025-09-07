@@ -28,6 +28,7 @@ public class CarDTO {
     @NotNull(message = "Year cannot be null")
     @Min(value = 1990, message = "Year must be greater than or equal to 1990")
     @Max(value = 2025, message = "Year must be less than or equal to 2025")
+
     private Integer year;
 
     @NotEmpty(message = "Nickname cannot be null")

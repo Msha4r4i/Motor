@@ -9,8 +9,7 @@ import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.CarRepository;
 import com.fkhrayef.motor.Repository.ReminderRepository;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ReminderService {
 
     private final ReminderRepository reminderRepository;
@@ -29,7 +29,7 @@ public class ReminderService {
     private final WhatsAppService whatsappService;
     private final EmailService emailService;
     
-    private static final Logger logger = LoggerFactory.getLogger(ReminderService.class);
+
 
 
     public List<Reminder> getAllReminders(){
@@ -40,6 +40,10 @@ public class ReminderService {
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found");
+        }
+
+        if (Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
         }
 
         Reminder reminder = new Reminder();
@@ -59,6 +63,11 @@ public class ReminderService {
             throw new ApiException("Reminder not found");
         }
 
+        Car car = reminder.getCar();
+        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
+        }
+
         reminder.setType(reminderDTO.getType());
         reminder.setDueDate(reminderDTO.getDueDate());
         reminder.setMessage(reminderDTO.getMessage());
@@ -69,6 +78,11 @@ public class ReminderService {
         Reminder reminder = reminderRepository.findReminderById(id);
         if (reminder == null) {
             throw new ApiException("Reminder not found");
+        }
+
+        Car car = reminder.getCar();
+        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
         }
         reminderRepository.delete(reminder);
     }
@@ -89,6 +103,10 @@ public class ReminderService {
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found");
+        }
+
+        if (Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
         }
 
         // Mileage is required by RAG and cannot be null (Map.of forbids nulls)
@@ -154,7 +172,7 @@ public class ReminderService {
     @Scheduled(cron = "0 * * * * *") // Every minute (for testing)
     public void sendReminderNotifications() {
         try {
-            logger.info("[Scheduler] Starting reminder notification check...");
+            log.info("[Scheduler] Starting reminder notification check...");
             
             LocalDate today = LocalDate.now();
             LocalDate nextWeek = today.plusDays(7);
@@ -182,7 +200,7 @@ public class ReminderService {
                 try {
                     sendReminderNotification(reminder, "week");
                 } catch (Exception e) {
-                    logger.error("[Scheduler] Failed to send weekly reminder notification for reminder ID {}: {}", 
+                    log.error("[Scheduler] Failed to send weekly reminder notification for reminder ID {}: {}", 
                             reminder.getId(), e.getMessage());
                 }
             }
@@ -192,16 +210,16 @@ public class ReminderService {
                 try {
                     sendReminderNotification(reminder, "day");
                 } catch (Exception e) {
-                    logger.error("[Scheduler] Failed to send daily reminder notification for reminder ID {}: {}", 
+                    log.error("[Scheduler] Failed to send daily reminder notification for reminder ID {}: {}", 
                             reminder.getId(), e.getMessage());
                 }
             }
             
-            logger.info("[Scheduler] Reminder notification check completed. Sent {} weekly and {} daily notifications.", 
+            log.info("[Scheduler] Reminder notification check completed. Sent {} weekly and {} daily notifications.", 
                     upcomingReminders.size(), tomorrowReminders.size());
                     
         } catch (Exception e) {
-            logger.error("[Scheduler] Reminder notification job failed: {}", e.getMessage());
+            log.error("[Scheduler] Reminder notification job failed: {}", e.getMessage());
         }
     }
     
@@ -222,11 +240,11 @@ public class ReminderService {
             try {
                 if (user.getPhone() != null && !user.getPhone().trim().isEmpty()) {
                     whatsappService.sendWhatsAppMessage(message, user.getPhone());
-                    logger.info("[Scheduler] WhatsApp notification sent to user {} for reminder ID {}",
+                    log.info("[Scheduler] WhatsApp notification sent to user {} for reminder ID {}",
                             user.getId(), reminder.getId());
                 }
             } catch (Exception e) {
-                logger.error("[Scheduler] Failed to send WhatsApp notification: {}", e.getMessage());
+                log.error("[Scheduler] Failed to send WhatsApp notification: {}", e.getMessage());
             }
         } else {
 
@@ -235,11 +253,11 @@ public class ReminderService {
                 if (user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
                     String subject = "تذكير صيانة - " + car.getMake() + " " + car.getModel();
                     emailService.sendEmail(user.getEmail(), subject, message);
-                    logger.info("[Scheduler] Email notification sent to user {} for reminder ID {}",
+                    log.info("[Scheduler] Email notification sent to user {} for reminder ID {}",
                             user.getId(), reminder.getId());
                 }
             } catch (Exception e) {
-                logger.error("[Scheduler] Failed to send email notification: {}", e.getMessage());
+                log.error("[Scheduler] Failed to send email notification: {}", e.getMessage());
             }
         }
         
@@ -327,7 +345,7 @@ public class ReminderService {
      */
     @Scheduled(cron = "0 0 9 * * MON") // كل يوم اثنين الساعة 9 صباحاً
     public void sendWeeklyMileageReminders() {
-        logger.info("[Scheduler] Starting weekly mileage reminders...");
+        log.info("[Scheduler] Starting weekly mileage reminders...");
 
         List<Car> cars = carRepository.findAll();
         for (Car car : cars) {
@@ -344,10 +362,10 @@ public class ReminderService {
 
             try {
                 whatsappService.sendWhatsAppMessage(message, user.getPhone());
-                logger.info("[Scheduler] Weekly mileage reminder sent to user {} for car {}",
+                log.info("[Scheduler] Weekly mileage reminder sent to user {} for car {}",
                         user.getId(), car.getId());
             } catch (Exception e) {
-                logger.error("[Scheduler] Failed to send weekly mileage reminder to user {}: {}",
+                log.error("[Scheduler] Failed to send weekly mileage reminder to user {}: {}",
                         user.getId(), e.getMessage());
             }
         }
