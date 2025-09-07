@@ -48,7 +48,7 @@ public class CarAIController {
         return ResponseEntity.status(HttpStatus.OK).body(info);
     }
 
-    // Admin endpoints
+    // TODO: Admin endpoints
     @GetMapping("/admin/documents")
     public ResponseEntity<?> getAllDocuments() {
         DocumentsInfoResponse documents = ragService.getDocumentsInfo();

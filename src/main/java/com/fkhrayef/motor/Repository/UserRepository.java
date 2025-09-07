@@ -10,4 +10,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     User findUserByEmailIgnoreCaseAndPhone(String email, String phone);
 
+    User findUserByPhone(String phone); // Phone is our username!
 }

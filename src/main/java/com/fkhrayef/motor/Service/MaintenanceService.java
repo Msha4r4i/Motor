@@ -5,8 +5,10 @@ import com.fkhrayef.motor.Api.ApiException;
 import com.fkhrayef.motor.DTOin.MaintenanceDTO;
 import com.fkhrayef.motor.Model.Car;
 import com.fkhrayef.motor.Model.Maintenance;
+import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.CarRepository;
 import com.fkhrayef.motor.Repository.MaintenanceRepository;
+import com.fkhrayef.motor.Repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,15 +22,25 @@ public class MaintenanceService {
     private final MaintenanceRepository maintenanceRepository;
     private final CarRepository carRepository;
     private final S3Service s3Service;
+    private final UserRepository userRepository;
 
     public List<Maintenance> getAllMaintenances(){
         return maintenanceRepository.findAll();
     }
 
-    public void addMaintenance(Integer carId, MaintenanceDTO maintenanceDTO){
+    public void addMaintenance(Integer userId, Integer carId, MaintenanceDTO maintenanceDTO) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         Car car = carRepository.findCarById(carId);
         if (car == null){
             throw new ApiException("Car not found !");
+        }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         if (Boolean.FALSE.equals(car.getIsAccessible())) {
@@ -48,14 +60,23 @@ public class MaintenanceService {
 
     }
 
-    public void updateMaintenance(Integer id, MaintenanceDTO maintenanceDTO){
+    public void updateMaintenance(Integer userId, Integer id, MaintenanceDTO maintenanceDTO) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         Maintenance maintenance = maintenanceRepository.findMaintenanceById(id);
         if (maintenance == null){
             throw new ApiException("Maintenance not found !");
         }
 
+        if (!maintenance.getCar().getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
+        }
+
         Car car = maintenance.getCar();
-        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+        if (Boolean.FALSE.equals(car.getIsAccessible())) {
             throw new ApiException("This car is not accessible on your current plan.");
         }
         maintenance.setRecordType(maintenanceDTO.getRecordType());
@@ -67,25 +88,44 @@ public class MaintenanceService {
         maintenanceRepository.save(maintenance);
     }
 
-    public void deleteMaintenance(Integer id){
+    public void deleteMaintenance(Integer userId, Integer id) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         Maintenance maintenance = maintenanceRepository.findMaintenanceById(id);
         if (maintenance == null){
             throw new ApiException("Maintenance not found !");
         }
 
+        if (!maintenance.getCar().getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
+        }
+
         Car car = maintenance.getCar();
-        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+        if (Boolean.FALSE.equals(car.getIsAccessible())) {
             throw new ApiException("This car is not accessible on your current plan.");
         }
         maintenanceRepository.delete(maintenance);
     }
 
-    public List<Maintenance> getMaintenancesByCarId(Integer carId){
+    public List<Maintenance> getMaintenancesByCarId(Integer userId, Integer carId){
+        User user = userRepository.findUserById(userId);
+        if (user == null){
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         Car car = carRepository.findCarById(carId);
 
         if (car == null){
             throw new ApiException("Car not found");
         }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
+        }
+
         return maintenanceRepository.findMaintenancesByCarId(car.getId());
     }
 
@@ -98,15 +138,24 @@ public class MaintenanceService {
     }
 
     // Invoice file management
-    public void uploadInvoice(Integer maintenanceId, MultipartFile file, Double invoiceAmount) {
+    public void uploadInvoice(Integer userId, Integer maintenanceId, MultipartFile file, Double invoiceAmount) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         // Get maintenance details from database
         Maintenance maintenance = maintenanceRepository.findMaintenanceById(maintenanceId);
         if (maintenance == null) {
             throw new ApiException("Maintenance not found with id: " + maintenanceId);
         }
 
+        if (!maintenance.getCar().getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
+        }
+
         Car car = maintenance.getCar();
-        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+        if (Boolean.FALSE.equals(car.getIsAccessible())) {
             throw new ApiException("This car is not accessible on your current plan.");
         }
 
@@ -133,7 +182,6 @@ public class MaintenanceService {
         // Upload to S3 with unique naming
         String s3Url;
         try {
-            if (car == null) throw new ApiException("Maintenance is not linked to a car"); // never happens but for IDE to stop warning
             s3Url = s3Service.uploadMaintenanceInvoiceFile(file, maintenanceId.toString(), car.getMake(), car.getModel());
         } catch (Exception e) {
             throw new ApiException("Failed to upload invoice file: " + e.getMessage());
@@ -145,11 +193,20 @@ public class MaintenanceService {
         maintenanceRepository.save(maintenance);
     }
 
-    public byte[] downloadInvoice(Integer maintenanceId) {
+    public byte[] downloadInvoice(Integer userId, Integer maintenanceId) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         // Get maintenance details from database
         Maintenance maintenance = maintenanceRepository.findMaintenanceById(maintenanceId);
         if (maintenance == null) {
             throw new ApiException("Maintenance not found with id: " + maintenanceId);
+        }
+
+        if (!maintenance.getCar().getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         if (maintenance.getInvoiceFileUrl() == null) {
@@ -164,15 +221,24 @@ public class MaintenanceService {
         return s3Service.downloadFile(key);
     }
 
-    public void deleteInvoice(Integer maintenanceId) {
+    public void deleteInvoice(Integer userId, Integer maintenanceId) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         // Get maintenance details from database
         Maintenance maintenance = maintenanceRepository.findMaintenanceById(maintenanceId);
         if (maintenance == null) {
             throw new ApiException("Maintenance not found with id: " + maintenanceId);
         }
 
+        if (!maintenance.getCar().getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
+        }
+
         Car car = maintenance.getCar();
-        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+        if (Boolean.FALSE.equals(car.getIsAccessible())) {
             throw new ApiException("This car is not accessible on your current plan.");
         }
 
