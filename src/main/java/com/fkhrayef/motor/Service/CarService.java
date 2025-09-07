@@ -56,7 +56,7 @@ public class CarService {
         car.setMileage(carDTO.getMileage());
         car.setVin(carDTO.getVin());
         car.setPurchaseDate(carDTO.getPurchaseDate());
-        car.setAccessible(true);
+        car.setIsAccessible(true);
         car.setUser(user);
 
 
@@ -476,7 +476,7 @@ public class CarService {
         }
 
         List<Car> cars = carRepository.findByUserIdOrderByCreatedAtAsc(userId);
-        for (int i = 0; i < cars.size(); i++) cars.get(i).setAccessible(i < limit);
+        for (int i = 0; i < cars.size(); i++) cars.get(i).setIsAccessible(i < limit);
         carRepository.saveAll(cars);
     }
 
