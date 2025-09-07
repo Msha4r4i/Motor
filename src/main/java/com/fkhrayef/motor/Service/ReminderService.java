@@ -8,6 +8,7 @@ import com.fkhrayef.motor.Model.Reminder;
 import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.CarRepository;
 import com.fkhrayef.motor.Repository.ReminderRepository;
+import com.fkhrayef.motor.Repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -28,18 +29,25 @@ public class ReminderService {
     private final RAGService ragService;
     private final WhatsAppService whatsappService;
     private final EmailService emailService;
-    
-
-
+    private final UserRepository userRepository;
 
     public List<Reminder> getAllReminders(){
         return reminderRepository.findAll();
     }
 
-    public void addReminder(Integer carId, ReminderDTO reminderDTO) {
+    public void addReminder(Integer userId, Integer carId, ReminderDTO reminderDTO) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found");
+        }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         if (Boolean.FALSE.equals(car.getIsAccessible())) {
@@ -57,10 +65,19 @@ public class ReminderService {
         reminderRepository.save(reminder);
     }
 
-    public void updateReminder(Integer id, ReminderDTO reminderDTO) {
+    public void updateReminder(Integer userId, Integer id, ReminderDTO reminderDTO) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         Reminder reminder = reminderRepository.findReminderById(id);
         if (reminder == null) {
             throw new ApiException("Reminder not found");
+        }
+
+        if (!reminder.getCar().getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         Car car = reminder.getCar();
@@ -74,10 +91,19 @@ public class ReminderService {
         reminderRepository.save(reminder);
     }
 
-    public void deleteReminder(Integer id) {
+    public void deleteReminder(Integer userId, Integer id) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         Reminder reminder = reminderRepository.findReminderById(id);
         if (reminder == null) {
             throw new ApiException("Reminder not found");
+        }
+
+        if (!reminder.getCar().getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         Car car = reminder.getCar();
@@ -87,22 +113,40 @@ public class ReminderService {
         reminderRepository.delete(reminder);
     }
 
-    public List<Reminder> getRemindersByCarId(Integer carId){
+    public List<Reminder> getRemindersByCarId(Integer userId, Integer carId){
+        User user = userRepository.findUserById(userId);
+        if (user == null){
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+
         Car car = carRepository.findCarById(carId);
 
         if (car == null){
             throw new ApiException("Car not found");
         }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
+        }
+
         return reminderRepository.findRemindersByCarId(car.getId());
     }
 
     @Transactional
-    public void generateAndSaveMaintenanceReminders(Integer carId) {
+    public void generateAndSaveMaintenanceReminders(Integer userId, Integer carId) {
+        User user = userRepository.findUserById(userId);
+        if (user == null){
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
 
         // Find the car
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found");
+        }
+
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("UNAUTHORIZED USER");
         }
 
         if (Boolean.FALSE.equals(car.getIsAccessible())) {
