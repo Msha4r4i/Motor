@@ -174,11 +174,16 @@ public class CarController {
         return ResponseEntity.status(HttpStatus.OK).body(carService.getTypicalMileagePerYear(make, model, city));
     }
 
-
     @PutMapping("/user/{userId}/car/{carId}/mileage")
     public ResponseEntity<?> updateMileage(@PathVariable Integer userId, @PathVariable Integer carId, @Valid @RequestBody CarMileageUpdateDTO dto) {
         carService.updateMileage(userId, carId, dto.getMileage());
         return ResponseEntity.ok(new ApiResponse("Mileage updated successfully"));
     }
+
+    @GetMapping("/numbers/{userId}")
+    public ResponseEntity<?> getCarsNo(@PathVariable Integer userId) {
+        return ResponseEntity.status(HttpStatus.OK).body(carService.getCarsNumbers(userId));
+    }
+
 
 }

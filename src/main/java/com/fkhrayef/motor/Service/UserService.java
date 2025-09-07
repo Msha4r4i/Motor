@@ -2,6 +2,7 @@ package com.fkhrayef.motor.Service;
 
 import com.fkhrayef.motor.Api.ApiException;
 import com.fkhrayef.motor.DTOin.UserDTO;
+import com.fkhrayef.motor.Model.Subscription;
 import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -150,5 +151,16 @@ public class UserService {
         }
 
         userRepository.delete(user);
+    }
+
+    public String getUserSubscriptionType(Integer userId){
+        User user = userRepository.findUserById(userId);
+        if (user == null) throw new ApiException("User not found!");
+        Subscription sub = user.getSubscription();
+        if (sub == null) return "FREE";
+        String p = sub.getPlanType();
+        if (p == null) return "FREE";
+        p = p.trim().toUpperCase();
+        return ("PRO".equals(p) || "ENTERPRISE".equals(p)) ? p : "FREE";
     }
 }
