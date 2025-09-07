@@ -423,29 +423,31 @@ public class CarService {
         carRepository.save(car);
     }
 
-    public Integer getCarsNumbers(Integer userId){
-        return carRepository.findCarsByUserId(userId).size();
+    public long getCarsNumbers(Integer userId){
+        return carRepository.countByUserId(userId);
     }
 
+
     public void enforceCarLimit(User user) {
-        int existing = getCarsNumbers(user.getId());
+        long existing = getCarsNumbers(user.getId());
         Subscription sub = user.getSubscription();
 
-        if (sub == null) { // Free (no subscription)
-            if (existing >= 1) throw new ApiException("Free plan allows only 1 car, you would have to upgrade you subscription type to Pro To add more than 1-5 cars !");
+        // Treat missing or non-active subscriptions as FREE
+        if (sub == null || sub.getStatus() == null || !"active".equalsIgnoreCase(sub.getStatus())) {
+            if (existing >= 1) throw new ApiException("Free plan allows only 1 car. Upgrade to Pro to add up to 5 cars.");
             return;
         }
 
         String plan = sub.getPlanType() == null ? "" : sub.getPlanType().toLowerCase();
         switch (plan) {
             case "pro":
-                if (existing >= 5) throw new ApiException("Pro plan allows up to 5 cars, you would have to upgrade you subscription type to Enterprise To add more than 5 cars !");
+                if (existing >= 5) throw new ApiException("Pro plan allows up to 5 cars. Upgrade to Enterprise to add more than 5 cars.");
                 break;
             case "enterprise":
                 // unlimited → no check
                 break;
             default:
-                if (existing >= 1) throw new ApiException("This plan allows only 1 car");
+                if (existing >= 1) throw new ApiException("This plan allows only 1 car.");
         }
     }
 

@@ -157,10 +157,21 @@ public class UserService {
         User user = userRepository.findUserById(userId);
         if (user == null) throw new ApiException("User not found!");
         Subscription sub = user.getSubscription();
-        if (sub == null) return "FREE";
+        if (sub == null || sub.getStatus() == null || !"active".equalsIgnoreCase(sub.getStatus())) return "free";
         String p = sub.getPlanType();
-        if (p == null) return "FREE";
-        p = p.trim().toUpperCase();
-        return ("PRO".equals(p) || "ENTERPRISE".equals(p)) ? p : "FREE";
+        if (p == null) return "free";
+        return ("free".equals(p) || "ENTERPRISE".equals(p)) ? p : "free";
+    }
+
+    public void deleteUserCard(Integer userId){
+        User user = userRepository.findUserById(userId);
+        if (user == null) throw new ApiException("User not found!");
+
+        user.setCardName(null);
+        user.setCardNumber(null);
+        user.setCardCvc(null);
+        user.setCardExpMonth(null);
+        user.setCardExpYear(null);
+
     }
 }

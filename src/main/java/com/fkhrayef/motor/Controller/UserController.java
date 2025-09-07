@@ -105,4 +105,10 @@ public class UserController {
 
         return ResponseEntity.ok(body);
     }
+
+    @DeleteMapping("/{userId}/card")
+    public ResponseEntity<String> deleteUserCard(@PathVariable Integer userId) {
+        userService.deleteUserCard(userId);
+        return ResponseEntity.ok("Card deleted successfully");
+    }
 }
