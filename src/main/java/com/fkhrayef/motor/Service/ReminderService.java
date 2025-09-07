@@ -216,28 +216,31 @@ public class ReminderService {
         if (user == null) return;
         
         String message = buildReminderMessage(reminder, car, notificationType);
-        
-        // Send WhatsApp notification
-        try {
-            if (user.getPhone() != null && !user.getPhone().trim().isEmpty()) {
-                whatsappService.sendWhatsAppMessage(message, user.getPhone());
-                logger.info("[Scheduler] WhatsApp notification sent to user {} for reminder ID {}", 
-                        user.getId(), reminder.getId());
+
+        if (notificationType.equals("day")) {
+            // Send WhatsApp notification
+            try {
+                if (user.getPhone() != null && !user.getPhone().trim().isEmpty()) {
+                    whatsappService.sendWhatsAppMessage(message, user.getPhone());
+                    logger.info("[Scheduler] WhatsApp notification sent to user {} for reminder ID {}",
+                            user.getId(), reminder.getId());
+                }
+            } catch (Exception e) {
+                logger.error("[Scheduler] Failed to send WhatsApp notification: {}", e.getMessage());
             }
-        } catch (Exception e) {
-            logger.error("[Scheduler] Failed to send WhatsApp notification: {}", e.getMessage());
-        }
-        
-        // Send Email notification
-        try {
-            if (user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
-                String subject = "تذكير صيانة - " + car.getMake() + " " + car.getModel();
-                emailService.sendEmail(user.getEmail(), subject, message);
-                logger.info("[Scheduler] Email notification sent to user {} for reminder ID {}", 
-                        user.getId(), reminder.getId());
+        } else {
+
+            // Send Email notification
+            try {
+                if (user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
+                    String subject = "تذكير صيانة - " + car.getMake() + " " + car.getModel();
+                    emailService.sendEmail(user.getEmail(), subject, message);
+                    logger.info("[Scheduler] Email notification sent to user {} for reminder ID {}",
+                            user.getId(), reminder.getId());
+                }
+            } catch (Exception e) {
+                logger.error("[Scheduler] Failed to send email notification: {}", e.getMessage());
             }
-        } catch (Exception e) {
-            logger.error("[Scheduler] Failed to send email notification: {}", e.getMessage());
         }
         
         // Mark reminder as sent (only for weekly notifications)
