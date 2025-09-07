@@ -144,34 +144,34 @@ public class CarController {
 
     // Yearly maintenance cost (last 12 months)
     @GetMapping("/maintenance-cost/{make}/{model}/yearly")
-    public String getYearlyMaintenanceCost(
+    public ResponseEntity<?>  getYearlyMaintenanceCost(
             @PathVariable String make,
             @PathVariable String model,
             @RequestParam(required = false) Integer minMileage,
             @RequestParam(required = false) Integer maxMileage
     ) {
-        return carService.getMaintenanceCostOneYear(make, model, minMileage, maxMileage);
+        return ResponseEntity.status(HttpStatus.OK).body(carService.getMaintenanceCostOneYear(make, model, minMileage, maxMileage));
     }
 
     // Visit frequency (last 12 months), phrased as “once every ~X years”
     @GetMapping("/visit-frequency/{make}/{model}")
-    public String getVisitFrequency(
+    public ResponseEntity<?>  getVisitFrequency(
             @PathVariable String make,
             @PathVariable String model,
             @RequestParam(required = false) Integer minAge,
             @RequestParam(required = false) Integer maxAge
     ) {
-        return carService.getVisitFrequency(make, model, minAge, maxAge);
+        return ResponseEntity.status(HttpStatus.OK).body(carService.getVisitFrequency(make, model, minAge, maxAge));
     }
 
     //Get the typical mileage per year for a given car make/model.
     @GetMapping("/typical-mileage/{make}/{model}")
-    public String getTypicalMileagePerYear(
+    public ResponseEntity<?>  getTypicalMileagePerYear(
             @PathVariable String make,
             @PathVariable String model,
             @RequestParam(required = false) String city
     ) {
-        return carService.getTypicalMileagePerYear(make, model, city);
+        return ResponseEntity.status(HttpStatus.OK).body(carService.getTypicalMileagePerYear(make, model, city));
     }
 
 

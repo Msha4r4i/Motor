@@ -295,13 +295,17 @@ public class CarService {
             throw new ApiException("Unsupported make/model");
         }
 
+        if (minMileage != null && maxMileage != null && minMileage > maxMileage) {
+                    throw new ApiException("minMileage cannot be greater than maxMileage");
+        }
+
         LocalDate oneYearAgo = LocalDate.now().minusYears(1);
 
-        List<Car> cars = carRepository.findAll().stream()
-                .filter(c -> make.equals(c.getMake()) && model.equals(c.getModel()))
+        List<Car> cars = carRepository.findByMakeAndModel(make, model).stream()
                 .filter(c -> minMileage == null || (c.getMileage() != null && c.getMileage() >= minMileage))
                 .filter(c -> maxMileage == null || (c.getMileage() != null && c.getMileage() <= maxMileage))
                 .toList();
+
 
         List<Double> costs = new ArrayList<>();
         for (Car c : cars) {
@@ -371,10 +375,9 @@ public class CarService {
 
         LocalDate today = LocalDate.now();
 
-        List<Car> cars = carRepository.findAll().stream()
-                .filter(c -> make.equals(c.getMake()) && model.equals(c.getModel()))
+        List<Car> cars = carRepository.findByMakeAndModel(make, model).stream()
                 .filter(c -> city == null ||
-                        (c.getUser() != null && city.equalsIgnoreCase(c.getUser().getCity())))
+                        (c.getUser() != null && c.getUser().getCity() != null && city.equalsIgnoreCase(c.getUser().getCity())))
                 .toList();
 
         List<Double> mileagePerYear = new ArrayList<>();
