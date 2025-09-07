@@ -30,7 +30,7 @@ public class UserService {
         user.setName(userDTO.getName());
         user.setEmail(userDTO.getEmail());
         user.setPassword(userDTO.getPassword());
-
+        user.setCity(userDTO.getCity());
         // set default values
         user.setRole("USER");
 
@@ -138,6 +138,7 @@ public class UserService {
         user.setName(userDTO.getName());
         user.setEmail(userDTO.getEmail());
         user.setPassword(userDTO.getPassword());
+        user.setCity(userDTO.getCity());
 
         userRepository.save(user);
     }
