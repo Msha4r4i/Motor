@@ -56,7 +56,7 @@ public class UserService {
         user.setPhone(userDTO.getPhone());
         user.setName(userDTO.getName());
         user.setEmail(userDTO.getEmail());
-        user.setPassword(userDTO.getPassword());
+        user.setPassword(new BCryptPasswordEncoder().encode(userDTO.getPassword()));
         user.setCity(userDTO.getCity());
 
         userRepository.save(user);

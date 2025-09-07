@@ -111,6 +111,8 @@ public class CarService {
             throw new ApiException("UNAUTHORIZED USER");
         }
 
+        ensureAccessible(car);
+
         if (newMileage == null) {
             throw new ApiException("New mileage is required");
         }
