@@ -8,7 +8,10 @@ import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.CarRepository;
 import com.fkhrayef.motor.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.query.ReturnableType;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +24,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CarService {
 
     private final CarRepository carRepository;
@@ -474,6 +478,24 @@ public class CarService {
         List<Car> cars = carRepository.findByUserIdOrderByCreatedAtAsc(userId);
         for (int i = 0; i < cars.size(); i++) cars.get(i).setAccessible(i < limit);
         carRepository.saveAll(cars);
+    }
+
+
+    //  @Scheduled(cron = "0 0 2 * * ?", zone = "Asia/Riyadh")
+    @Scheduled(cron = "0 * * * * *") // Every minute (for testing)
+    public void enforceAllUsersAccessPaged() {
+        log.info("[Scheduler] Starting enforceAllUsersAccessPaged...");
+        int page = 0;
+        Page<User> slice;
+        do {
+            slice = userRepository.findAll(PageRequest.of(page, 500));
+            log.info("[Scheduler] Enforcing access for {} users (page {})", slice.getNumberOfElements(), page);
+            for (User u : slice) {
+                enforceCarAccess(u.getId());
+            }
+            page++;
+        } while (slice.hasNext());
+        log.info("[Scheduler] Completed enforceAllUsersAccessPaged.");
     }
 
 
