@@ -3,10 +3,12 @@ package com.fkhrayef.motor.Service;
 import com.fkhrayef.motor.Api.ApiException;
 import com.fkhrayef.motor.DTOin.CarDTO;
 import com.fkhrayef.motor.Model.Car;
+import com.fkhrayef.motor.Model.Subscription;
 import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.CarRepository;
 import com.fkhrayef.motor.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.query.ReturnableType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +37,10 @@ public class CarService {
         if (user == null) {
             throw new ApiException("User not found");
         }
+
+        // enforce subscription rules
+        enforceCarLimit(user);
+
         validateCarMakeAndModel(carDTO);
 
         Car car = new Car();
@@ -399,8 +405,6 @@ public class CarService {
     }
 
 
-
-
     public void updateMileage(Integer userId, Integer carId, Integer newMileage) {
         Car car = carRepository.findCarByIdAndUserId(carId, userId);
         if (car == null) {
@@ -418,4 +422,34 @@ public class CarService {
         car.setMileage(newMileage);
         carRepository.save(car);
     }
+
+    public long getCarsNumbers(Integer userId){
+        return carRepository.countByUserId(userId);
+    }
+
+
+    public void enforceCarLimit(User user) {
+        long existing = getCarsNumbers(user.getId());
+        Subscription sub = user.getSubscription();
+
+        // Treat missing or non-active subscriptions as FREE
+        if (sub == null || sub.getStatus() == null || !"active".equalsIgnoreCase(sub.getStatus())) {
+            if (existing >= 1) throw new ApiException("Free plan allows only 1 car. Upgrade to Pro to add up to 5 cars.");
+            return;
+        }
+
+        String plan = sub.getPlanType() == null ? "" : sub.getPlanType().toLowerCase();
+        switch (plan) {
+            case "pro":
+                if (existing >= 5) throw new ApiException("Pro plan allows up to 5 cars. Upgrade to Enterprise to add more than 5 cars.");
+                break;
+            case "enterprise":
+                // unlimited → no check
+                break;
+            default:
+                if (existing >= 1) throw new ApiException("This plan allows only 1 car.");
+        }
+    }
+
+
 }

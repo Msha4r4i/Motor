@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -92,5 +94,21 @@ public class UserController {
         userService.deleteLicense(id);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse("License deleted successfully"));
+    }
+
+    @GetMapping("/{userId}/subscription")
+    public ResponseEntity<Map<String, String>> getSubscription(@PathVariable Integer userId) {
+        String type = userService.getUserSubscriptionType(userId);
+
+        Map<String, String> body = new HashMap<>();
+        body.put("subscriptionType", type.isEmpty() ? "FREE" : type);
+
+        return ResponseEntity.ok(body);
+    }
+
+    @DeleteMapping("/{userId}/card")
+    public ResponseEntity<String> deleteUserCard(@PathVariable Integer userId) {
+        userService.deleteUserCard(userId);
+        return ResponseEntity.ok("Card deleted successfully");
     }
 }
