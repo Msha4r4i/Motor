@@ -18,6 +18,7 @@ public class ReminderController {
 
     private final ReminderService reminderService;
 
+    // TODO: ADMIN
     @GetMapping("/get")
     public ResponseEntity<?> getAllReminders() {
         return ResponseEntity.status(HttpStatus.OK).body(reminderService.getAllReminders());

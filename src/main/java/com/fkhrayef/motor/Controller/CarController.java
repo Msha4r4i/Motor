@@ -192,11 +192,13 @@ public class CarController {
         return ResponseEntity.status(HttpStatus.OK).body(carService.getTypicalMileagePerYear(user.getId(), make, model, city));
     }
 
+    // TODO: Admin
     @GetMapping("/numbers/{userId}")
     public ResponseEntity<?> getCarsNo(@PathVariable Integer userId) {
         return ResponseEntity.status(HttpStatus.OK).body(carService.getCarsNumbers(userId));
     }
 
+    // TODO: Admin
     @PutMapping("/{userId}/enforce-access")
     public ResponseEntity<Void> enforceAccess(@PathVariable Integer userId) {
         carService.enforceCarAccess(userId);

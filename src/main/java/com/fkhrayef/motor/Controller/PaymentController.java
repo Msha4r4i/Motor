@@ -39,6 +39,7 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    // TODO: ADMIN or No one
     // Moyasar callback endpoint (just shows status)
     @GetMapping("/callback")
     public ResponseEntity<?> handleCallback(@RequestParam String id,
@@ -51,6 +52,7 @@ public class PaymentController {
         ));
     }
 
+    // TODO: ADMIN or No one
     // Moyasar webhook endpoint (handles business logic)
     @PostMapping("/webhook")
     public ResponseEntity<?> handleWebhook(@RequestBody String payload) {
@@ -67,6 +69,7 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse("Payment status: " + status));
     }
 
+    // TODO: ADMIN
     // Get payment by ID
     @GetMapping("/payment/{paymentId}")
     public ResponseEntity<?> getPayment(@PathVariable Integer paymentId) {
@@ -88,6 +91,7 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.OK).body(subscription);
     }
 
+    // TODO: ADMIN
     // Get expiring subscriptions (admin endpoint)
     @GetMapping("/subscription/expiring")
     public ResponseEntity<?> getExpiringSubscriptions() {

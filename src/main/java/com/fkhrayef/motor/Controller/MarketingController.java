@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 public class MarketingController {
 
     private final MarketingService marketingService;
+
+    // TODO: Admin endpoints
     @GetMapping("/get")
     public ResponseEntity<?> getAllMarketing (){
         return ResponseEntity.status(200).body(marketingService.getAllMarketing());

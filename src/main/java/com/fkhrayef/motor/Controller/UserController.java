@@ -25,6 +25,7 @@ public class UserController {
 
     private final UserService userService;
 
+    // TODO: ADMIN
     @GetMapping("/get")
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsers());

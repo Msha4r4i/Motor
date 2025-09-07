@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/v1/maintenances")
+@RequiredArgsConstructor
 public class MaintenanceController {
 
     private final MaintenanceService maintenanceService;
