@@ -51,22 +51,28 @@ public class CarTransferRequestService {
         }
 
         Car car = carRepository.findCarById(carId);
-        if (car == null) throw new ApiException("السيارة غير موجودة");
+        if (car == null) {
+            throw new ApiException("Car not found");
+        }
 
         User fromUser = userRepository.findUserById(fromUserId);
-        if (fromUser == null) throw new ApiException("المستخدم (المرسل) غير موجود");
+        if (fromUser == null){
+            throw new ApiException("Sender user not found");
+        }
 
         // نجيب المستقبل من الإيميل + الجوال
         User toUser = userRepository.findUserByEmailIgnoreCaseAndPhone(toEmail.trim(), toPhone.trim());
-        if (toUser == null) throw new ApiException("بيانات المستقبل غير صحيحة (الإيميل أو الجوال)");
+        if (toUser == null){
+            throw new ApiException("Recipient data is invalid (email or phone)");
+        }
 
-        if (fromUser.getId().equals(toUser.getId()))
-            throw new ApiException("لا يمكن إنشاء طلب نقل لنفس المستخدم");
-
+        if (fromUser.getId().equals(toUser.getId())){
+            throw new ApiException("Cannot create a transfer request to the same user");
+        }
         // تأكيد أن السيارة مملوكة للمرسل الآن
-        if (car.getUser() == null || !car.getUser().getId().equals(fromUser.getId()))
-            throw new ApiException("لا يمكنك إنشاء طلب نقل لسيارة لا تملكها");
-
+        if (car.getUser() == null || !car.getUser().getId().equals(fromUser.getId())){
+            throw new ApiException("You cannot create a transfer request for a car you do not own");
+        }
         // (اختياري) منع تكرار طلب pending لنفس (car, from, to)
         boolean existsPending = transferRepo.findAllByFromUser_Id(fromUserId)
                 .stream()
@@ -76,7 +82,7 @@ public class CarTransferRequestService {
                                 PENDING.equals(t.getStatus())
                 );
         if (existsPending) {
-            throw new ApiException("يوجد طلب نقل مُعلّق لنفس السيارة بين نفس المستخدمين");
+            throw new ApiException("A pending transfer request already exists for the same car and users");
         }
 
         // ✅ إنشـاء طلب نقل بحالة pending (بدون نقل ملكية)
@@ -98,19 +104,19 @@ public class CarTransferRequestService {
 
         CarTransferRequest r = transferRepo.findCarTransferRequestById(requestId);
         if (r == null){
-            throw new ApiException("طلب النقل غير موجود");
+            throw new ApiException("Transfer request not found");
         }
         if (!PENDING.equals(r.getStatus())){
-            throw new ApiException("لا يمكن قبول طلب غير مُعلّق");
+            throw new ApiException("Cannot accept a non-pending request");
         }
 
         if (transferRepo.findByIdAndToUser_Id(requestId,actingUserId) == null){
-            throw new ApiException("فقط المستلم يستطيع قبول الطلب");
+            throw new ApiException("Only the recipient can accept the request");
         }
 
         Car car = r.getCar();
         if (car.getUser() == null || !car.getUser().getId().equals(r.getFromUser().getId())){
-            throw new ApiException("ملكية السيارة تغيّرت قبل القبول");
+            throw new ApiException("Car ownership changed before acceptance");
         }
 
         car.setUser(r.getToUser());
@@ -130,15 +136,15 @@ public class CarTransferRequestService {
 
         CarTransferRequest r = transferRepo.findCarTransferRequestById(requestId);
         if (r == null){
-            throw new ApiException("طلب النقل غير موجود");
+            throw new ApiException("Transfer request not found");
         }
 
         if (!PENDING.equals(r.getStatus())){
-            throw new ApiException("لا يمكن إلغاء طلب غير مُعلّق");
+            throw new ApiException("Cannot cancel a non-pending request");
         }
 
         if (transferRepo.findByIdAndFromUser_Id(requestId, actingUserId) == null) {
-            throw new ApiException("فقط منشئ الطلب يستطيع إلغاء الطلب");
+            throw new ApiException("Only the requester can cancel the request");
         }
 
         r.setStatus(CANCELLED);
@@ -154,14 +160,17 @@ public class CarTransferRequestService {
         }
 
         CarTransferRequest r = transferRepo.findCarTransferRequestById(requestId);
-        if (r == null) throw new ApiException("طلب النقل غير موجود");
+        if (r == null){
+            throw new ApiException("Transfer request not found");
+        }
 
-        if (!PENDING.equals(r.getStatus()))
-            throw new ApiException("لا يمكن رفض طلب غير مُعلّق");
+        if (!PENDING.equals(r.getStatus())){
+            throw new ApiException("Cannot reject a non-pending request");
+        }
 
-        if (transferRepo.findByIdAndToUser_Id(requestId, actingUserId) == null)
-            throw new ApiException("فقط المستلم يستطيع رفض الطلب");
-
+        if (transferRepo.findByIdAndToUser_Id(requestId, actingUserId) == null){
+            throw new ApiException("Only the recipient can reject the request");
+        }
         r.setStatus(REJECTED);
         transferRepo.save(r);
         return toDto(r);
@@ -170,7 +179,7 @@ public class CarTransferRequestService {
     public CarTransferResponseDTO getOne(Integer id) {
         CarTransferRequest r = transferRepo.findCarTransferRequestById(id);
         if (r == null) {
-            throw new ApiException("طلب النقل غير موجود");
+            throw new ApiException("Transfer request not found");
         }
         return toDto(r);
     }
