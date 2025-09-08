@@ -4,6 +4,7 @@ import com.fkhrayef.motor.Model.Car;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,4 +21,7 @@ public interface CarRepository extends JpaRepository<Car, Integer> {
     long countByUserId(Integer userId);
 
     List<Car> findByUserIdOrderByCreatedAtAsc(Integer userId);
+
+    List<Car> findByRegistrationExpiry(LocalDate date);
+    List<Car> findByInsuranceEndDate(LocalDate date);
 }
