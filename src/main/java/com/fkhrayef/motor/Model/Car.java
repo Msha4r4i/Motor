@@ -20,11 +20,11 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Check(constraints = "mileage >= 0")
+@Check(constraints = "mileage >= 0")
 @Check(constraints =
         "make IN ('Toyota','Lexus','Hyundai','Nissan','Kia','Chevrolet','GMC','Ford','Mazda','Mitsubishi','Isuzu','Infiniti','Genesis') " +
                 "AND model IN ('Land Cruiser','Prado','Camry','Corolla','Hilux','Yaris','Avalon','LX570','ES350','Sonata','Elantra','Tucson','Palisade','Altima','Patrol','X-Trail','Sportage','Sorento','Sentra','Tahoe','Suburban','Silverado','Yukon','Sierra','F-150','Explorer','CX-5','L200','D-Max') " +
                 "AND year BETWEEN 1990 AND 2025")
-
 public class Car {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -62,6 +62,9 @@ public class Car {
 
     @Column(columnDefinition = "DATE")
     private LocalDate insuranceEndDate;
+
+    @Column(columnDefinition = "BOOLEAN NOT NULL DEFAULT FALSE")
+    private Boolean isAccessible;
 
     // Relations
     @ManyToOne
