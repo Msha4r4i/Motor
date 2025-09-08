@@ -4,12 +4,14 @@ import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.CarRepository;
 import com.fkhrayef.motor.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExpirySchedulerService {
@@ -42,7 +44,9 @@ public class ExpirySchedulerService {
 
                 emailService.sendEmail(u.getEmail(), subject, body);
 
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.warn("Failed to send license expiry email: userId={}, email={}",
+                        u.getId(), u.getEmail(), e);
             }
         }
     }
@@ -77,7 +81,10 @@ public class ExpirySchedulerService {
 
                 emailService.sendEmail(u.getEmail(), subject, body);
 
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.warn("Failed to send registration expiry email: carId={}, userId={}, email={}",
+                        c.getId(), c.getUser()!=null?c.getUser().getId():null,
+                        c.getUser()!=null?c.getUser().getEmail():null, e);
             }
         }
 
@@ -106,7 +113,10 @@ public class ExpirySchedulerService {
 
                 emailService.sendEmail(u.getEmail(), subject, body);
 
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.warn("Failed to send insurance expiry email: carId={}, userId={}, email={}",
+                        c.getId(), c.getUser()!=null?c.getUser().getId():null,
+                        c.getUser()!=null?c.getUser().getEmail():null, e);
             }
         }
     }
