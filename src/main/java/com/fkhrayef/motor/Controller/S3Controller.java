@@ -18,6 +18,7 @@ public class S3Controller {
     @Autowired
     private S3Service s3Service;
 
+    // TODO: Admin endpoints
     @PostMapping("/upload")
     public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file) throws IOException {
         s3Service.uploadFile(file);

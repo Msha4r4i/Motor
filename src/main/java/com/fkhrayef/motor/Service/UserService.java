@@ -2,9 +2,11 @@ package com.fkhrayef.motor.Service;
 
 import com.fkhrayef.motor.Api.ApiException;
 import com.fkhrayef.motor.DTOin.UserDTO;
+import com.fkhrayef.motor.Model.Subscription;
 import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,14 +24,13 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    // TODO: switch it to register and use registerDTO
-    public void addUser(UserDTO userDTO) {
+    public void register(UserDTO userDTO) {
         User user = new User();
         // set DTO values
         user.setPhone(userDTO.getPhone());
         user.setName(userDTO.getName());
         user.setEmail(userDTO.getEmail());
-        user.setPassword(userDTO.getPassword());
+        user.setPassword(new BCryptPasswordEncoder().encode(userDTO.getPassword()));
         user.setCity(userDTO.getCity());
         // set default values
         user.setRole("USER");
@@ -37,11 +38,66 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void uploadLicense(Integer userId, MultipartFile file, LocalDate licenseExpiry) {
-        // Get user details from database
-        User user = userRepository.findUserById(userId);
+    public void updateUser(Integer userId, Integer id, UserDTO userDTO) {
+        // check if the user is updating himself
+        User reqUser = userRepository.findUserById(userId);
+        if (reqUser == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+        if (!reqUser.getId().equals(id)) {
+            throw new ApiException("UNAUTHORIZED USER");
+        }
+
+        User user = userRepository.findUserById(id);
         if (user == null) {
-            throw new ApiException("User not found with id: " + userId);
+            throw new ApiException("User not found");
+        }
+
+        user.setPhone(userDTO.getPhone());
+        user.setName(userDTO.getName());
+        user.setEmail(userDTO.getEmail());
+        user.setPassword(new BCryptPasswordEncoder().encode(userDTO.getPassword()));
+        user.setCity(userDTO.getCity());
+
+        userRepository.save(user);
+    }
+
+    public void deleteUser(Integer userId, Integer id) {
+        // check if the user is updating himself
+        User reqUser = userRepository.findUserById(userId);
+        if (reqUser == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+        if (!reqUser.getRole().equals("ADMIN")) {
+            if (!reqUser.getId().equals(id)) {
+                throw new ApiException("UNAUTHORIZED USER");
+            }
+        }
+
+        User user = userRepository.findUserById(id);
+        if (user == null) {
+            throw new ApiException("User not found");
+        }
+
+        userRepository.delete(user);
+    }
+
+    public void uploadLicense(Integer userId, Integer id, MultipartFile file, LocalDate licenseExpiry) {
+        // check if the user is updating himself
+        User reqUser = userRepository.findUserById(userId);
+        if (reqUser == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+        if (!reqUser.getRole().equals("ADMIN")) {
+            if (!reqUser.getId().equals(id)) {
+                throw new ApiException("UNAUTHORIZED USER");
+            }
+        }
+
+        // Get user details from database
+        User user = userRepository.findUserById(id);
+        if (user == null) {
+            throw new ApiException("User not found with id: " + id);
         }
 
         // Validate file presence
@@ -70,7 +126,7 @@ public class UserService {
         // Upload to S3 with unique naming
         String s3Url;
         try {
-            s3Url = s3Service.uploadLicenseFile(file, userId.toString(), user.getPhone());
+            s3Url = s3Service.uploadLicenseFile(file, id.toString(), user.getPhone());
         } catch (Exception e) {
             throw new ApiException("Failed to upload license file: " + e.getMessage());
         }
@@ -81,11 +137,22 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public byte[] downloadLicense(Integer userId) {
+    public byte[] downloadLicense(Integer userId, Integer id) {
+        // check if the user is getting his own data
+        User reqUser = userRepository.findUserById(userId);
+        if (reqUser == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+        if (!reqUser.getRole().equals("ADMIN")) {
+            if (!reqUser.getId().equals(id)) {
+                throw new ApiException("UNAUTHORIZED USER");
+            }
+        }
+
         // Get user details from database
-        User user = userRepository.findUserById(userId);
+        User user = userRepository.findUserById(id);
         if (user == null) {
-            throw new ApiException("User not found with id: " + userId);
+            throw new ApiException("User not found with id: " + id);
         }
 
         if (user.getLicenseFileUrl() == null) {
@@ -100,11 +167,22 @@ public class UserService {
         return s3Service.downloadFile(key);
     }
 
-    public void deleteLicense(Integer userId) {
+    public void deleteLicense(Integer userId, Integer id) {
+        // check if the user is deleting his own data
+        User reqUser = userRepository.findUserById(userId);
+        if (reqUser == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+        if (!reqUser.getRole().equals("ADMIN")) {
+            if (!reqUser.getId().equals(id)) {
+                throw new ApiException("UNAUTHORIZED USER");
+            }
+        }
+
         // Get user details from database
-        User user = userRepository.findUserById(userId);
+        User user = userRepository.findUserById(id);
         if (user == null) {
-            throw new ApiException("User not found with id: " + userId);
+            throw new ApiException("User not found with id: " + id);
         }
 
         if (user.getLicenseFileUrl() == null) {
@@ -128,27 +206,47 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void updateUser(Integer id, UserDTO userDTO) {
-        User user = userRepository.findUserById(id);
-        if (user == null) {
-            throw new ApiException("User not found");
+    public String getUserSubscriptionType(Integer userId, Integer id){
+        // check if the user is getting his own data
+        User reqUser = userRepository.findUserById(userId);
+        if (reqUser == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+        if (!reqUser.getRole().equals("ADMIN")) {
+            if (!reqUser.getId().equals(id)) {
+                throw new ApiException("UNAUTHORIZED USER");
+            }
         }
 
-        user.setPhone(userDTO.getPhone());
-        user.setName(userDTO.getName());
-        user.setEmail(userDTO.getEmail());
-        user.setPassword(userDTO.getPassword());
-        user.setCity(userDTO.getCity());
-
-        userRepository.save(user);
+        User user = userRepository.findUserById(id);
+        if (user == null) throw new ApiException("User not found!");
+        Subscription sub = user.getSubscription();
+        if (sub == null || sub.getStatus() == null || !"active".equalsIgnoreCase(sub.getStatus())) return "free";
+        String p = sub.getPlanType();
+        if (p == null) return "free";
+        return ("free".equals(p) || "ENTERPRISE".equals(p)) ? p : "free";
     }
 
-    public void deleteUser(Integer id) {
-        User user = userRepository.findUserById(id);
-        if (user == null) {
-            throw new ApiException("User not found");
+    public void deleteUserCard(Integer userId, Integer id){
+        // check if the user is deleting his own data
+        User reqUser = userRepository.findUserById(userId);
+        if (reqUser == null) {
+            throw new ApiException("UNAUTHENTICATED USER");
+        }
+        if (!reqUser.getRole().equals("ADMIN")) {
+            if (!reqUser.getId().equals(id)) {
+                throw new ApiException("UNAUTHORIZED USER");
+            }
         }
 
-        userRepository.delete(user);
+        User user = userRepository.findUserById(id);
+        if (user == null) throw new ApiException("User not found!");
+
+        user.setCardName(null);
+        user.setCardNumber(null);
+        user.setCardCvc(null);
+        user.setCardExpMonth(null);
+        user.setCardExpYear(null);
+        userRepository.save(user);
     }
 }

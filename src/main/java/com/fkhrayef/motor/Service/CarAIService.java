@@ -27,6 +27,10 @@ public class CarAIService {
             throw new ApiException("Car not found with id: " + carId);
         }
 
+        if (Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
+        }
+
         // Validate file type
         String fileName = file.getOriginalFilename();
         if (fileName == null || !fileName.toLowerCase().endsWith(".pdf")) {
@@ -79,6 +83,10 @@ public class CarAIService {
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found with id: " + carId);
+        }
+
+        if (Boolean.FALSE.equals(car.getIsAccessible())) {
+            throw new ApiException("This car is not accessible on your current plan.");
         }
 
         if (question == null || question.trim().isEmpty()) {

@@ -6,12 +6,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/email")
+@RequestMapping("/api/v1/email")
 @RequiredArgsConstructor
 public class EmailController {
 
     private final JavaMailSender mailSender;
 
+    // TODO: Admin
     @GetMapping("/test")
     public ResponseEntity<String> sendTest() {
         SimpleMailMessage msg = new SimpleMailMessage();
