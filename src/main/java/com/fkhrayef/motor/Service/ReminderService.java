@@ -44,8 +44,7 @@ public class ReminderService {
         }
 
         String planType = user.getSubscription().getPlanType();
-        if (planType == null || 
-            (!"pro".equalsIgnoreCase(planType) && !"enterprise".equalsIgnoreCase(planType))) {
+        if ((!"pro".equalsIgnoreCase(planType) && !"enterprise".equalsIgnoreCase(planType))) {
             throw new ApiException("AI features require an active subscription. Please upgrade to Pro or Enterprise plan.");
         }
     }
@@ -100,7 +99,7 @@ public class ReminderService {
         }
 
         Car car = reminder.getCar();
-        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+        if (Boolean.FALSE.equals(car.getIsAccessible())) {
             throw new ApiException("This car is not accessible on your current plan.");
         }
 
@@ -126,7 +125,7 @@ public class ReminderService {
         }
 
         Car car = reminder.getCar();
-        if (car != null && Boolean.FALSE.equals(car.getIsAccessible())) {
+        if (Boolean.FALSE.equals(car.getIsAccessible())) {
             throw new ApiException("This car is not accessible on your current plan.");
         }
         reminderRepository.delete(reminder);

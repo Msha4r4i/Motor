@@ -38,8 +38,7 @@ public class CarAIService {
         }
 
         String planType = user.getSubscription().getPlanType();
-        if (planType == null || 
-            (!"pro".equalsIgnoreCase(planType) && !"enterprise".equalsIgnoreCase(planType))) {
+        if ((!"pro".equalsIgnoreCase(planType) && !"enterprise".equalsIgnoreCase(planType))) {
             throw new ApiException("AI features require an active subscription. Please upgrade to Pro or Enterprise plan.");
         }
     }
