@@ -31,6 +31,25 @@ public class ReminderService {
     private final EmailService emailService;
     private final UserRepository userRepository;
 
+    private void validateSubscription(Integer userId) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("User not found");
+        }
+
+        if (user.getSubscription() == null || 
+            user.getSubscription().getStatus() == null || 
+            !"active".equalsIgnoreCase(user.getSubscription().getStatus())) {
+            throw new ApiException("AI features require an active subscription. Please upgrade to Pro or Enterprise plan.");
+        }
+
+        String planType = user.getSubscription().getPlanType();
+        if (planType == null || 
+            (!"pro".equalsIgnoreCase(planType) && !"enterprise".equalsIgnoreCase(planType))) {
+            throw new ApiException("AI features require an active subscription. Please upgrade to Pro or Enterprise plan.");
+        }
+    }
+
     public List<Reminder> getAllReminders(){
         return reminderRepository.findAll();
     }
@@ -138,6 +157,9 @@ public class ReminderService {
         if (user == null){
             throw new ApiException("UNAUTHENTICATED USER");
         }
+
+        // Validate user has active subscription for AI features
+        validateSubscription(userId);
 
         // Find the car
         Car car = carRepository.findCarById(carId);

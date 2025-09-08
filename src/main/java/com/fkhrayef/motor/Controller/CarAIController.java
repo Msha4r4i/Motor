@@ -1,11 +1,13 @@
 package com.fkhrayef.motor.Controller;
 
 import com.fkhrayef.motor.DTOout.*;
+import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Service.CarAIService;
 import com.fkhrayef.motor.Service.RAGService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,6 +24,7 @@ public class CarAIController {
 
     @PostMapping("/upload-manual/{carId}")
     public ResponseEntity<?> uploadManual(
+            @AuthenticationPrincipal User user,
             @PathVariable Integer carId,
             @RequestParam("file") MultipartFile file) {
 
@@ -29,22 +32,23 @@ public class CarAIController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        ManualUploadResponse response = carAIService.uploadManual(carId, file);
+        ManualUploadResponse response = carAIService.uploadManual(user.getId(), carId, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/ask/{carId}")
     public ResponseEntity<?> askQuestion(
+            @AuthenticationPrincipal User user,
             @PathVariable Integer carId,
             @RequestParam String question) {
 
-        QuestionResponse response = carAIService.askQuestion(carId, question);
+        QuestionResponse response = carAIService.askQuestion(user.getId(), carId, question);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/car/{carId}/info")
-    public ResponseEntity<?> getCarDocumentInfo(@PathVariable Integer carId) {
-        CarDocumentInfoResponse info = carAIService.getCarDocumentInfo(carId);
+    public ResponseEntity<?> getCarDocumentInfo(@AuthenticationPrincipal User user, @PathVariable Integer carId) {
+        CarDocumentInfoResponse info = carAIService.getCarDocumentInfo(user.getId(), carId);
         return ResponseEntity.status(HttpStatus.OK).body(info);
     }
 
