@@ -83,7 +83,7 @@ public class UserService {
         if (user.getLicenseFileUrl() != null) {
             deleteLicense(userId, id);
         }
-        
+
         userRepository.delete(user);
     }
 
