@@ -3,7 +3,9 @@ package com.fkhrayef.motor.Service;
 import com.fkhrayef.motor.Api.ApiException;
 import com.fkhrayef.motor.DTOout.*;
 import com.fkhrayef.motor.Model.Car;
+import com.fkhrayef.motor.Model.User;
 import com.fkhrayef.motor.Repository.CarRepository;
+import com.fkhrayef.motor.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,11 +22,40 @@ public class CarAIService {
     @Autowired
     private CarRepository carRepository;
 
-    public ManualUploadResponse uploadManual(Integer carId, MultipartFile file) {
+    @Autowired
+    private UserRepository userRepository;
+
+    private void validateSubscription(Integer userId) {
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            throw new ApiException("User not found");
+        }
+
+        if (user.getSubscription() == null || 
+            user.getSubscription().getStatus() == null || 
+            !"active".equalsIgnoreCase(user.getSubscription().getStatus())) {
+            throw new ApiException("AI features require an active subscription. Please upgrade to Pro or Enterprise plan.");
+        }
+
+        String planType = user.getSubscription().getPlanType();
+        if ((!"pro".equalsIgnoreCase(planType) && !"enterprise".equalsIgnoreCase(planType))) {
+            throw new ApiException("AI features require an active subscription. Please upgrade to Pro or Enterprise plan.");
+        }
+    }
+
+    public ManualUploadResponse uploadManual(Integer userId, Integer carId, MultipartFile file) {
+        // Validate user has active subscription
+        validateSubscription(userId);
+
         // Get car details from database
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found with id: " + carId);
+        }
+
+        // Verify car belongs to user
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("You don't have permission to upload manual for this car");
         }
 
         if (Boolean.FALSE.equals(car.getIsAccessible())) {
@@ -78,11 +109,19 @@ public class CarAIService {
         return response;
     }
 
-    public QuestionResponse askQuestion(Integer carId, String question) {
+    public QuestionResponse askQuestion(Integer userId, Integer carId, String question) {
+        // Validate user has active subscription
+        validateSubscription(userId);
+
         // Get car details from database
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found with id: " + carId);
+        }
+
+        // Verify car belongs to user
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("You don't have permission to ask questions about this car");
         }
 
         if (Boolean.FALSE.equals(car.getIsAccessible())) {
@@ -105,11 +144,19 @@ public class CarAIService {
         return response;
     }
 
-    public CarDocumentInfoResponse getCarDocumentInfo(Integer carId) {
+    public CarDocumentInfoResponse getCarDocumentInfo(Integer userId, Integer carId) {
+        // Validate user has active subscription
+        validateSubscription(userId);
+
         // Get car details from database
         Car car = carRepository.findCarById(carId);
         if (car == null) {
             throw new ApiException("Car not found with id: " + carId);
+        }
+
+        // Verify car belongs to user
+        if (!car.getUser().getId().equals(userId)) {
+            throw new ApiException("You don't have permission to access information about this car");
         }
 
         // Generate document name from car details
