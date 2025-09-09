@@ -37,7 +37,7 @@ The application provides **71 RESTful endpoints** across 10 controllers:
 | 1   | GET    | `/api/v1/users/get` | Faisal |
 | 2   | POST   | `/api/v1/users/register` | Faisal |
 | 3   | PUT    | `/api/v1/users/update/{id}` | Faisal |
-| 4   | DELETE | `/api/v1/users/delete/{id}` | Faisal |
+| 4   | DELETE | `/api/v1/users/delete/{id}` | Abdulaziz |
 | 5   | POST   | `/api/v1/users/upload-license/{id}` | Faisal |
 | 6   | GET    | `/api/v1/users/download-license/{id}` | Faisal |
 | 7   | DELETE | `/api/v1/users/delete-license/{id}` | Faisal |
@@ -47,7 +47,7 @@ The application provides **71 RESTful endpoints** across 10 controllers:
 | 11  | POST   | `/api/v1/cars/add` | Abdulaziz |
 | 12  | PUT    | `/api/v1/cars/update/{id}` | Faisal |
 | 13  | PUT    | `/api/v1/cars/update/{carId}/mileage` | Mshari |
-| 14  | DELETE | `/api/v1/cars/delete/{id}` | Faisal |
+| 14  | DELETE | `/api/v1/cars/delete/{id}` | Abdulaziz |
 | 15  | GET    | `/api/v1/cars/get/user` | Abdulaziz |
 | 16  | POST   | `/api/v1/cars/upload-registration/{id}` | Faisal |
 | 17  | GET    | `/api/v1/cars/download-registration/{id}` | Faisal |
@@ -63,7 +63,7 @@ The application provides **71 RESTful endpoints** across 10 controllers:
 | 27  | GET    | `/api/v1/maintenances/get` | Faisal |
 | 28  | POST   | `/api/v1/maintenances/add/{carId}` | Faisal |
 | 29  | PUT    | `/api/v1/maintenances/update/{id}` | Faisal |
-| 30  | DELETE | `/api/v1/maintenances/delete/{id}` | Faisal |
+| 30  | DELETE | `/api/v1/maintenances/delete/{id}` | Abdulaziz |
 | 31  | GET    | `/api/v1/maintenances/get/{carId}` | Abdulaziz |
 | 32  | POST   | `/api/v1/maintenances/upload-invoice/{id}` | Faisal |
 | 33  | GET    | `/api/v1/maintenances/download-invoice/{id}` | Faisal |
