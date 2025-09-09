@@ -137,6 +137,17 @@ public class CarService {
             throw new ApiException("UNAUTHORIZED USER");
         }
 
+        // delete insurance if exists
+        if (car.getInsuranceFileUrl() != null) {
+            deleteInsurance(userId, id);
+        }
+
+        // delete registration if exists
+        if (car.getRegistrationFileUrl() != null) {
+            deleteRegistration(userId, id);
+        }
+
+
         carRepository.delete(car);
     }
 
@@ -531,12 +542,9 @@ public class CarService {
         return String.format("Typical mileage per year: %.0f km (based on %d cars)", avg, count);
     }
 
-
-
     public long getCarsNumbers(Integer userId){
         return carRepository.countByUserId(userId);
     }
-
 
     public void enforceCarLimit(User user) {
         long existing = getCarsNumbers(user.getId());
@@ -582,7 +590,6 @@ public class CarService {
         for (int i = 0; i < cars.size(); i++) cars.get(i).setIsAccessible(i < limit);
         carRepository.saveAll(cars);
     }
-
 
     //  @Scheduled(cron = "0 0 2 * * ?", zone = "Asia/Riyadh")
     @Scheduled(cron = "0 * * * * *") // Every minute (for testing)

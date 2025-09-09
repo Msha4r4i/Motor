@@ -200,7 +200,7 @@ public class CarController {
 
     // TODO: Admin
     @PutMapping("/{userId}/enforce-access")
-    public ResponseEntity<Void> enforceAccess(@PathVariable Integer userId) {
+    public ResponseEntity<?> enforceAccess(@PathVariable Integer userId) {
         carService.enforceCarAccess(userId);
         return ResponseEntity.ok().build();
     }
