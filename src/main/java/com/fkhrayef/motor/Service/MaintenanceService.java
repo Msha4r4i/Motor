@@ -107,6 +107,11 @@ public class MaintenanceService {
         if (Boolean.FALSE.equals(car.getIsAccessible())) {
             throw new ApiException("This car is not accessible on your current plan.");
         }
+
+        // delete invoices if exists
+        if (maintenance.getInvoiceFileUrl() != null) {
+            deleteInvoice(userId, id);
+        }
         maintenanceRepository.delete(maintenance);
     }
 

@@ -102,18 +102,18 @@ public class UserController {
     }
 
     @GetMapping("/{id}/subscription")
-    public ResponseEntity<Map<String, String>> getSubscription(@AuthenticationPrincipal User user, @PathVariable Integer id) {
+    public ResponseEntity<?> getSubscription(@AuthenticationPrincipal User user, @PathVariable Integer id) {
         String type = userService.getUserSubscriptionType(user.getId(), id);
 
         Map<String, String> body = new HashMap<>();
         body.put("subscriptionType", type.isEmpty() ? "FREE" : type);
 
-        return ResponseEntity.ok(body);
+        return ResponseEntity.ok(new ApiResponse("Card deleted successfully"));
     }
 
     @DeleteMapping("/{id}/card")
-    public ResponseEntity<String> deleteUserCard(@AuthenticationPrincipal User user, @PathVariable Integer id) {
+    public ResponseEntity<?> deleteUserCard(@AuthenticationPrincipal User user, @PathVariable Integer id) {
         userService.deleteUserCard(user.getId(), id);
-        return ResponseEntity.ok("Card deleted successfully");
+        return ResponseEntity.status(200).body(new ApiResponse("Card deleted successfully"));
     }
 }

@@ -79,6 +79,14 @@ public class UserService {
             throw new ApiException("User not found");
         }
 
+        // delete insurance if exists
+        if (user.getLicenseFileUrl() != null) {
+            deleteLicense(userId, id);
+        }
+
+        //delete cards related to the user
+        deleteUserCard(userId, id);
+
         userRepository.delete(user);
     }
 
@@ -241,6 +249,16 @@ public class UserService {
 
         User user = userRepository.findUserById(id);
         if (user == null) throw new ApiException("User not found!");
+
+
+        if (user.getCardName() == null &&
+                user.getCardNumber() == null &&
+                user.getCardCvc() == null &&
+                user.getCardExpMonth() == null &&
+                user.getCardExpYear() == null) {
+            throw new ApiException("No card details to delete!");
+        }
+
 
         user.setCardName(null);
         user.setCardNumber(null);
