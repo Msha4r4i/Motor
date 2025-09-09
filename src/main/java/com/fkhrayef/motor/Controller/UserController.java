@@ -108,7 +108,7 @@ public class UserController {
         Map<String, String> body = new HashMap<>();
         body.put("subscriptionType", type.isEmpty() ? "FREE" : type);
 
-        return ResponseEntity.ok(new ApiResponse("Card deleted successfully"));
+        return ResponseEntity.ok(body);
     }
 
     @DeleteMapping("/{id}/card")
