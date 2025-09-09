@@ -191,9 +191,13 @@ The application provides **71 RESTful endpoints** across 10 controllers:
 
 ---
 
+## Postman Docs: [Motor Docs](https://documenter.getpostman.com/view/48075154/2sB3HnJywW)
+
+---
+
 ## Security & Access Control
 
-- **Authentication**: JWT-based user authentication
+- **Authentication**: Session-based user authentication
 - **Authorization**: Role-based access control (USER/ADMIN)
 - **Subscription Validation**: AI features require active Pro/Enterprise subscriptions
 - **Data Protection**: Users can only access their own cars and data
